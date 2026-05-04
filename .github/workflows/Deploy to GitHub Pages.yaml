@@ -21,42 +21,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 1) 安装 pnpm（关键修复点）
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      # 2) 安装 Node，并让缓存策略识别 pnpm（可选但推荐）
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
+          cache: npm
 
-      # 3) 打个版本号，确认 pnpm 已可用（调试用）
-      - name: Check pnpm
-        run: pnpm -v
-
-      # 4) 装依赖（有 lock 就用 --frozen-lockfile；没有就普通装）
       - name: Install dependencies
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm install --frozen-lockfile
-          else
-            pnpm install
-          fi
+        run: npm ci
 
-      # 5) 构建 & 导出静态站点（Next.js）
       - name: Build & Export static site
-        run: pnpm build
+        run: npm run build
 
-      # 6) 保险：把 CNAME 和 .nojekyll 放进 out/
       - name: Add CNAME and .nojekyll
         run: |
           echo "willsleep.dev" > out/CNAME
-          echo "yueqiao.dev" > out/CNAME
           touch out/.nojekyll
 
-      # 7) 上传制品给 Pages
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
