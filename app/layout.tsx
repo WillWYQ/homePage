@@ -4,6 +4,8 @@ import { Geist, Geist_Mono, Lora } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 const lora = Lora({subsets:['latin'],variable:'--font-serif'});
 
 const geistSans = Geist({
