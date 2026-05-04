@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NEXT_PUBLIC_SITE_NAME=willsleep next build",
+    "build:willsleep": "NEXT_PUBLIC_SITE_NAME=willsleep next build",
+    "build:yueqiao": "NEXT_PUBLIC_SITE_NAME=yueqiao next build",
     "start": "next start",
     "lint": "eslint"
   },

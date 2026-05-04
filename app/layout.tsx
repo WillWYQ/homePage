@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { Geist, Geist_Mono, Lora } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
-export const dynamic = "force-dynamic";
 
 const lora = Lora({subsets:['latin'],variable:'--font-serif'});
 
@@ -18,29 +15,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const headersList = await headers();
-  const host = headersList.get("host") || "";
+const METADATA_MAP: Record<string, Metadata> = {
+  willsleep: {
+    title: "The Sleep Lab",
+    description: "a space for dreaming",
+  },
+  yueqiao: {
+    title: "Yueqiao Dev",
+    description: "Coming soon",
+  },
+};
 
-  if (host.includes("willsleep.dev")) {
-    return {
-      title: "The Sleep Lab",
-      description: "a space for dreaming",
-    };
-  }
-
-  if (host.includes("yueqiao.dev")) {
-    return {
-      title: "Yueqiao Dev",
-      description: "Coming soon",
-    };
-  }
-
-  return {
-    title: "My Site",
-    description: "Welcome",
-  };
-}
+const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "willsleep";
+export const metadata: Metadata = METADATA_MAP[siteName] || METADATA_MAP.willsleep;
 
 export default function RootLayout({
   children,
