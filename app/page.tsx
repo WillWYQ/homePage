@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { Vortex } from '@/components/ui/vortex'
 import { WavyBackground } from "@/components/ui/wavy-background"
+import { MagneticButton } from '@/components/ui/magnetic-button'
 import { useEffect, useState } from 'react'
 import { TextRevealCard } from '@/components/ui/text-reveal-card'
 
@@ -53,9 +54,7 @@ export default function Home() {
       {/* Rest of your page content */}
       <main className="relative z-10">
         <WavyBackground>
-          <section className="h-screen flex items-center justify-center height-[100]">
-            
-          </section>
+
         </WavyBackground>
 
         {/* Add more content to enable scrolling */}
@@ -72,6 +71,18 @@ export default function Home() {
             <p className="text-gray-600 mb-4">More content...</p>
           </div>
         </section> */}
+        {<section className="h-screen flex items-center justify-center height-[100]">
+          <MagneticButton>
+            <a
+              href="https://career.yueqiao.dev/"
+              target="_blank"
+              rel="noreferrer"
+              className="block rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-transform duration-150 hover:-translate-y-1"
+            >
+              Explore My Career
+            </a>
+          </MagneticButton>
+        </section>}
       </main>
     </div>
   )
