@@ -61,7 +61,7 @@ Mono 是这个站的性格担当:凡是"实验室仪表读数"性质的信息一
 /photos        暗房     摄影瀑布流(图源 Cloudflare R2)
 /about         驻留研究员  关于我 + 收藏(书影音/在听/设备)
 /zh /en        翻译版   Phase 5,完整翻译的中文版/英文版(见 §7)
-404            "This room has no power yet. / 这个房间还没通电。"
+404            标本架   空罐盖章 SPECIMEN MISSING;五只有标本的罐子即站点地图
 ```
 
 ### 导航
@@ -186,11 +186,16 @@ lucidity: 2
 - 下半:收藏架,分 shelf 展示:`books` / `films` / `music` / `gear`,每项一行:名称 + 一句话备注,mono 标签。数据源 `content/about/index.md` 的 frontmatter,不接第三方 API,手工维护即可。
 - 红线检查:此页任何改动都过一遍 §1 的三条红线。
 
-### 404 — 没通电的房间
+### 404 — 标本架(specimen shelf)
 
-- 黑屏中央:`This room has no power yet.` / `这个房间还没通电。`
-- mono 小字链接:`◂ back to the corridor`。
-- 可选彩蛋:文字用 EncryptedText 渲染,永远解不完。
+三层结构:互动 → 幽默 → 实用,导航长在剧情里,不外挂地图。
+
+- **场景:** 黑屏中一排实验室架子,六只罐子。五只贴 mono 标签 `now / lab / notes / photos / about`,罐内各漂一点终端绿荧光"标本",形态对应房间气质:波形(now)、粒子(lab)、字符(notes)、底片(photos)、剪影(about)。
+- **互动层:** 正中第六只罐子是空的,hover 轻晃;点击后飘出一行 mono 小字 `last seen: in a dream`。
+- **幽默层:** 空罐标签上打印访客敲错的路径(客户端读 `location.pathname`,静态 `404.html` 可行;读不到时印 `unknown specimen`),盖章 `SPECIMEN MISSING`。**印章同为终端绿**——不为一枚章破"单一强调色"的法(§2)。
+- **实用层:** 五只有标本的罐子就是站点地图,点击即进房间;架子下方一行 mono 小字 `◂ back to the corridor` 回首页(走廊不在五罐之列)。
+- **实现与降级:** 全 CSS/SVG(罐体矢量 + 荧光用 filter/box-shadow),不用 canvas;无 JS 时罐子退化为普通链接、标签印 `unknown specimen`;`prefers-reduced-motion` 全静态。不加音效。
+- **B 案(罐子视觉超预算时降级):** 失眠钟三幕——永远停在 `04:04` 的钟(点击拨针会弹回)→ 钟下说明文字每隔几秒悄变,第三变揭穿 "text keeps changing? you're dreaming — this url never existed" → 钟跳到 `04:05`,浮现 "wake up into:" + 五房间链接。纯文字 + 定时器,一小时可上线。
 
 ## 6. 图片同步管线(scripts/sync-images.mjs)
 
@@ -324,7 +329,7 @@ type Locale = 'canonical' | 'zh' | 'en'
 | /notes 档案室 | 无 | — | — | 阅读优先,纯排版 |
 | /photos 暗房 | 灯箱放大镜 | **Lens** | free | 暗房里拿放大镜看底片;索引页只用 blurhash 淡入 |
 | /about 研究员 | 开场段落 | **SVG Mask Effect** | free | 鼠标是一束手电筒光,照到哪读到哪;自画像用 **ASCII Art**(free,`animationStyle: "matrix"`) |
-| 404 | 背景 | **Shooting Stars / Glowing Stars** | free | 没通电的房间,窗外的夜空 |
+| 404 | 标本架整体 | 自制(CSS/SVG,见 §5 404 规格) | — | 空罐 + 五罐即站点地图;不叠加任何背景组件,Shooting Stars 弃用 |
 
 ### 实验候补(从组件目录直接孵化 EXP)
 
