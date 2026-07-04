@@ -299,11 +299,11 @@ type Locale = 'canonical' | 'zh' | 'en'
 
 | 期 | 内容 | 完成标准 |
 |---|---|---|
-| 1 骨架 | 导航、/now、/about、404、favicon、metadata、sitemap/robots、trailingSlash | 双域名构建通过;yueqiao 构建不出新板块;红线自查通过 |
+| 1 骨架 | 导航、/now、/about、404、favicon、metadata、sitemap/robots、trailingSlash;页面组件签名自带 `locale` 参数(§7.2) | 双域名构建通过;yueqiao 构建不出新板块;红线自查通过 |
 | 2 实验区 | /lab 框架 + EXP-001~003(现有组件包装) | 三个实验可全屏交互,信息面板齐全,reduced-motion 降级可用 |
 | 3 档案室 | 内容库解析管线(§4)、zod frontmatter 校验、new:note/new:dream/new:roll 脚手架、/notes 列表与文章页、RSS | 发布第一篇 note 与第一条 REM 记录(均由脚手架创建);故意写坏一个字段,构建报错且指明文件;feed.xml 可订阅 |
 | 4 暗房 | sync-images 脚本、R2 配置、/photos 页 | 第一卷照片上线;GitHub Pages 产物不含图片;脚本幂等可重跑 |
-| 5 翻译版 | /zh /en 路由树、字典、hreflang、语言切换 | 至少 about + now 有完整双语;未翻译页回落正常 |
+| 5 翻译版 | /zh /en 路由树、UI 字典、hreflang、页脚切换器(§7) | about + now 有 zh/en 全译;回落页有标注且 noindex;sitemap 只收真实翻译;任意页面三版互切不 404 |
 
 ## 10. 组件与素材来源
 
