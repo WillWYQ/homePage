@@ -37,10 +37,20 @@
 
 Mono 是这个站的性格担当:凡是"实验室仪表读数"性质的信息一律 mono + 小号 + `white/40`。
 
-### 动效原则
+### 动效原则(质感 > 动画)
 
-- 仪式感只属于首页。Vortex 开场保留现有行为(3.5s 自动淡出,任意交互可跳过)。
-- 子页动效克制:淡入、下划线过渡即可,页面切换要快。
+这个站不是网页效果陈列馆。动效分四层,预算写死:
+
+| 层 | 范围 | 预算 |
+|---|---|---|
+| 底噪层 | 全站 grain 颗粒(§10.3) | 透明度 ≤5%,访客不该"注意到"它,只该在它消失时觉得少了点什么 |
+| 微交互层 | hover / focus / 链接过渡 | ≤200ms、幅度小,像材质的物性,不像"动画" |
+| 签名层 | 每房间至多一个叙事效果(§10.1 落位表) | **入场演一次即静止**(翻牌屏翻完即停,手电筒是访客自己在动),不自动循环 |
+| 实验层 | 持续运动的 canvas / shader | **只许存在于 /lab/[slug] 全屏页内**,不外溢到任何房间 |
+
+- **判据:无人触发、无限循环的动画是"效果显示器"的标志。** 全站只有两处豁免:首页 Wavy(那是走廊的灯,建筑的一部分,不是展品)与实验层内部。
+- 缓动语言是"夜里的速度":400–800ms、ease-out、无弹跳、无 overshoot。营销页的活泼在这座楼里是走音。
+- 仪式感只属于首页。Vortex 开场保留现有行为(3.5s 自动淡出,任意交互可跳过,sessionStorage 一晚一次)。
 - 全站尊重 `prefers-reduced-motion`:开场动画直接跳过,canvas 实验降级为静态帧 + 手动播放按钮。
 
 ### 语言与文风
@@ -56,7 +66,7 @@ Mono 是这个站的性格担当:凡是"实验室仪表读数"性质的信息一
 /now           值班表   最近在折腾 / 在读 / 在想 / 在听
 /lab           实验区   编号实验网格
 /lab/[slug]              单个实验,全屏交互
-/notes         档案室   随笔 + 梦境记录列表(按年分组)
+/notes         档案室   记录档案:观察(note)/ 梦境(REM)/ 事故报告(IR)
 /notes/[slug]            单篇 MDX 文章
 /photos        暗房     摄影瀑布流(图源 Cloudflare R2)
 /about         驻留研究员  关于我 + 收藏(书影音/在听/设备)
@@ -123,8 +133,8 @@ photos:
 
 ### 脚手架与校验(第 3 期随解析管线一起交付)
 
-- **`pnpm new:note` / `new:dream` / `new:roll` 脚手架脚本**(`scripts/new-content.mjs`):交互式问一个标题,自动建文件夹(生成规范的 slug 与日期前缀)、写入该类型的 frontmatter 模板。新内容永远从脚本起步,杜绝手写漏字段、slug 命名不一致。
-- **构建期 frontmatter 校验**(`lib/content-schema.ts`,zod):每种内容类型一个 schema(note / dream / photo-set / now / about / lab)。解析管线读入任何 `index.md` 都先过校验,**字段错误直接让 `next build` 失败并指出文件与字段**,而不是页面上静默渲染出怪样。schema 即 §5 各房间 frontmatter 约定的唯一权威定义,脚手架模板也从它生成,两处不会漂移。
+- **`pnpm new:note` / `new:dream` / `new:incident` / `new:roll` 脚手架脚本**(`scripts/new-content.mjs`):交互式问一个标题,自动建文件夹(生成规范的 slug 与日期前缀)、写入该类型的 frontmatter 模板;`new:dream` / `new:incident` 自动分配下一个 REM / IR 编号,`new:incident` 顺带生成 timeline / root cause / lessons 三段骨架。新内容永远从脚本起步,杜绝手写漏字段、slug 命名不一致。
+- **构建期 frontmatter 校验**(`lib/content-schema.ts`,zod):每种内容类型一个 schema(note / dream / incident / photo-set / now / about / lab)。解析管线读入任何 `index.md` 都先过校验,**字段错误直接让 `next build` 失败并指出文件与字段**,而不是页面上静默渲染出怪样。schema 即 §5 各房间 frontmatter 约定的唯一权威定义,脚手架模板也从它生成,两处不会漂移。
 
 ### / — 走廊
 
@@ -141,37 +151,67 @@ photos:
 
 ### /lab — 实验区
 
-- **索引页:** 网格卡片。每卡:`EXP-001`(mono)+ 名称 + 一句话说明 + 日期。缩略图用静态 poster 图(不做 live canvas 预览,首屏性能优先)。
-- **详情页 `/lab/[slug]`:** 全屏交互画布。左上角悬浮一枚 mono 徽标:`EXP-001 · vortex field`,hover/点击展开信息面板(这是什么、参数说明、灵感来源),`Esc` 或 `◂` 返回。
-- **实验注册表:** 元数据与信息面板文字在 `content/lab/<slug>/index.md`(poster 图同文件夹),`generateStaticParams` 扫描该目录;`lib/experiments.ts` 只做 slug → 实验组件的映射,每个实验是一个 `'use client'` 组件(`components/experiments/`),`next/dynamic` 按需加载。
-- **首发三件展品**(现有组件包装):
-  - `EXP-001 vortex field` — Vortex,补充可调参数(粒子数、范围)
-  - `EXP-002 standing waves` — WavyBackground,可调波速/色相
-  - `EXP-003 decryption chamber` — EncryptedText 做成交互版:访客输入自己的文字看加密→解密过程
+**实验室的身份先于展品。** 常驻研究员的档案(ABOUT-DESIGN.md 附录 B)给出了三条共识:万物皆可系统工程、夜行是制度、不许假。因此这个 lab 的公式是:**用他唯一信任的方法(仪器、参数、观测记录),研究他唯一调不通的系统(睡眠、夜、记忆)。** 库组件是**仪器**,不是**展品**;挂上编号的必须是一次有对象的观察,不是一次组件安装。
+
+**策展三问**(新实验入册前逐条过,答不出就进不了展厅):
+
+1. **它在研究一个问题吗?** 标题能改写成一个问句。"好看"不是问题。
+2. **拿走借来的组件,还剩下我的东西吗?** 剩下的应当是:问题本身、参数化方式、自己的数据、或一次机制反转。
+3. **它的动画在传达信息吗?** 实验里,动 = 仪器在测量;纯装饰的运动不配进实验室。
+
+规格:
+
+- **索引页:** 网格卡片。每卡:`EXP-001`(mono)+ 名称 + **一个问句**(取代一句话说明)+ 状态 `ongoing / archived`。缩略图用静态 poster 图(不做 live canvas 预览,首屏性能优先)。
+- **详情页 `/lab/[slug]`:** 全屏交互画布。左上角悬浮 mono 徽标:`EXP-001 · breathing field`,hover/点击展开**实验记录面板**,结构固定四栏:`question / method / observation / instruments`。instruments 一栏如实列出借用的库与技术——"不许假"在实验室的形态:方法与器材必须可复查。`Esc` 或 `◂` 返回。
+- **实验注册表:** 元数据与面板文字在 `content/lab/<slug>/index.md`(poster 同文件夹),`generateStaticParams` 扫描该目录;`lib/experiments.ts` 只做 slug → 组件映射,每个实验是 `'use client'` 组件(`components/experiments/`),`next/dynamic` 按需加载。
+- **首发三件展品**(仍用那三个现有组件,但每件都有了研究对象):
+  - `EXP-001 breathing field` — Wavy 场按 4-7-8 呼吸节律起伏,访客跟着屏幕呼吸。问题:*一块屏幕能不能把人的呼吸降到入睡的频率?* 这是一件真能用来助眠的工具,不是演示。
+  - `EXP-002 tonight's tides` — 输入就寝时间,90 分钟睡眠周期化作潮汐波形铺开,浅睡窗口标绿。问题:*今晚几点醒,最不难受?*
+  - `EXP-003 dream decay` — 反转 EncryptedText:访客写下一段梦(vanish input),文字在每次重读时丢失、错乱一点,模拟晨间遗忘。问题:*梦是在哪一次复述里丢掉的?*
+- **候补方向(从身份长出来,不从组件目录长出来):** 白/棕噪声混音台(Web Audio,可用的助眠工具)· 04:04 失眠钟(404 B 案转正)· REM observatory(等 /notes 攒够梦境记录,把自己的梦做成数据仪表——notes 喂 lab,房间连通)· `EXP-000 the bit outside the mask`(站名创世神话:一枚拒绝被掩码的 bit,可玩的位运算小机器)。
+- **编号永不复用;实验可标 `archived` 但不下架**——失败的实验也是记录,这也是系统工程师的诚实。
 
 ### /notes — 档案室
 
-- **列表页:** 按年分组的目录。每行:日期(mono)+ 标题 + 类型徽标。两种类型:
-  - `note` — 随笔,常规展示
-  - `dream` — 梦境记录,编号 `REM-001`,列表里以编号代替日期展示,更像档案
-- **文章页:** Lora 正文,行宽 `max-w-prose`,梦境记录顶部多一行仪表读数:`recorded: 07-02 06:41 · lucidity: 2/5`(字段可选)。
+**这个房间收"记录",不收"文章"。** 馆训来自研究员档案(observer #2):*"踩过的坑必须变成文字,不然不算踩完。"* 单元是 record——三行也成立,没有题图,没有"博客感",也就没有写作债。他的生活自然产出三种文字,即三种类型:
+
+- `note` — **观察记录(field note):** 一个想法一条,可短至三句,标题可以是问句。读书摘录、深夜的念头都归这类,不另设书评类型。
+- `dream` — **梦境记录 `REM-001`:** 晨间快写,允许碎片、不成句;可选 `recorded / lucidity` 仪表字段。这是未来 REM observatory(§5 /lab 候补)的原始数据——notes 喂 lab,房间连通。
+- `incident` — **事故报告 `IR-001`:** 把 SRE 验尸报告格式用在生活与私人项目上——timeline / root cause / lessons,可选 `severity`(SEV-1~3)。本站幽默感的主产区:IR 可以是"三个闹钟均未生效事故"或"node_modules 被 iCloud 蒸发事故"。**career 侧的技术战报不进这里**(红线 1),只收"站外的我"的事故。
+
+规格:
+
+- **列表页:** 按年分组,每行一条 mono 编目行,类型只靠编号前缀区分,不做彩色徽标(单一强调色,§2):
+  ```
+  REM-007 · 2026-07-02 · 电梯只到 B2
+  IR-002  · SEV-3      · 白噪音开了整晚,醒来耳机没电
+  2026-07-01 · 为什么便利店的灯比家里诚实
+  ```
+- **文章页:** Lora 正文,行宽 `max-w-prose`;dream 与 incident 顶部一行仪表读数(`recorded: 07-02 06:41 · lucidity: 2/5` / `severity: SEV-3 · status: resolved`),字段可选。
+- **档案纪律:只追加,不重写。** 发布后的记录要更正就在文末补一行 mono `addendum: …`,不改原文——与"不许假"同源,git 历史即编辑历史。
+- **空旷合法:** 三种类型都无产出义务(红线 3 不硬凑);列表页设计须在只有 5 条时就成立,不靠数量撑场面。
 - **内容管线:** `content/notes/<slug>/index.md`(文件夹即 slug,见 §4),构建时 gray-matter 读 frontmatter + unified/remark 编译正文;随文图与正文同文件夹,相对引用。frontmatter:
 
 ```yaml
 ---
 title: 关于失眠的一个实验
 date: 2026-07-02
-type: note        # note | dream
+type: note        # note | dream | incident
 summary: 一句话摘要,用于列表与 RSS
 lang: mixed        # mixed | zh | en(canonical 的主要语言,供 hreflang 参考)
 # dream 专属(可选):
 rem: 1             # REM 编号
 recorded: 2026-07-02T06:41
 lucidity: 2
+# incident 专属(可选):
+ir: 2              # IR 编号
+severity: 3        # SEV-1~3,数字越小越严重(沿用 SRE 惯例)
+status: resolved   # resolved | ongoing | wontfix
 ---
 ```
 
-- **RSS:** `app/feed.xml/route.ts` 的静态 `GET`(Next 16 静态导出支持 Route Handler 的 GET 构建期产物),只收录 /notes。
+- **编号规则同 /lab:** REM 与 IR 编号永不复用;`wontfix` 也是一种结案(这很诚实)。
+- **RSS:** `app/feed.xml/route.ts` 的静态 `GET`(Next 16 静态导出支持 Route Handler 的 GET 构建期产物),三种类型都收录。
 
 ### /photos — 暗房
 
@@ -182,7 +222,9 @@ lucidity: 2
 
 ### /about — 驻留研究员
 
-- 上半:一段混排自述(站外的我:作息、爱好、为什么叫 will sleep)。
+> 本房间有独立规格:**[ABOUT-DESIGN.md](ABOUT-DESIGN.md)**(档案式"观察者记录"结构 + 校准 prompt 采集流程),冲突时以它为准。以下为概要。
+
+- 上半:研究员档案——多名 AI 观察者的印象引语 + 本人批注,展牌开场(手电筒签名效果)。
 - 下半:收藏架,分 shelf 展示:`books` / `films` / `music` / `gear`,每项一行:名称 + 一句话备注,mono 标签。数据源 `content/about/index.md` 的 frontmatter,不接第三方 API,手工维护即可。
 - 红线检查:此页任何改动都过一遍 §1 的三条红线。
 
@@ -305,8 +347,8 @@ type Locale = 'canonical' | 'zh' | 'en'
 | 期 | 内容 | 完成标准 |
 |---|---|---|
 | 1 骨架 | 导航、/now、/about、404、favicon、metadata、sitemap/robots、trailingSlash;页面组件签名自带 `locale` 参数(§7.2) | 双域名构建通过;yueqiao 构建不出新板块;红线自查通过 |
-| 2 实验区 | /lab 框架 + EXP-001~003(现有组件包装) | 三个实验可全屏交互,信息面板齐全,reduced-motion 降级可用 |
-| 3 档案室 | 内容库解析管线(§4)、zod frontmatter 校验、new:note/new:dream/new:roll 脚手架、/notes 列表与文章页、RSS | 发布第一篇 note 与第一条 REM 记录(均由脚手架创建);故意写坏一个字段,构建报错且指明文件;feed.xml 可订阅 |
+| 2 实验区 | /lab 框架 + EXP-001~003(breathing field / tonight's tides / dream decay,§5) | 每件实验回答一个真问题并通过策展三问;记录面板含 question/method/observation/instruments;reduced-motion 降级可用 |
+| 3 档案室 | 内容库解析管线(§4)、zod frontmatter 校验、new:note/new:dream/new:incident/new:roll 脚手架、/notes 列表与文章页、RSS | 发布第一篇 note、第一条 REM 与第一份 IR(均由脚手架创建);故意写坏一个字段,构建报错且指明文件;feed.xml 可订阅 |
 | 4 暗房 | sync-images 脚本、R2 配置、/photos 页 | 第一卷照片上线;GitHub Pages 产物不含图片;脚本幂等可重跑 |
 | 5 翻译版 | /zh /en 路由树、UI 字典、hreflang、页脚切换器(§7) | about + now 有 zh/en 全译;回落页有标注且 noindex;sitemap 只收真实翻译;任意页面三版互切不 404 |
 
@@ -325,22 +367,24 @@ type Locale = 'canonical' | 'zh' | 'en'
 | / 走廊 | 已有 Vortex + Wavy | — | — | 不再加任何东西 |
 | /now 值班表 | 页首标题行 | **Text Flipping Board** | free | Vestaboard 翻牌显示屏,"值班表/发车牌"的完美实体;`sound: false` |
 | /lab 索引 | 网格 hover | **Focus Cards** | free | hover 聚焦一张、其余暗化,像实验室橱窗;备选 Evervault Card(hover 加密字符流,与解密美学同源)二选一 |
-| /lab EXP-003 | 输入框 | **Placeholders And Vanish Input** | free | 访客输入 → 文字粒子化消散 → EncryptedText 解密重现,天作之合 |
+| /lab EXP-003 dream decay | 输入框 | **Placeholders And Vanish Input** | free | 写下的梦消散,再以损坏的形态重现——组件在此是仪器,服务遗忘的叙事(§5 /lab) |
 | /notes 档案室 | 无 | — | — | 阅读优先,纯排版 |
 | /photos 暗房 | 灯箱放大镜 | **Lens** | free | 暗房里拿放大镜看底片;索引页只用 blurhash 淡入 |
 | /about 研究员 | 开场段落 | **SVG Mask Effect** | free | 鼠标是一束手电筒光,照到哪读到哪;自画像用 **ASCII Art**(free,`animationStyle: "matrix"`) |
 | 404 | 标本架整体 | 自制(CSS/SVG,见 §5 404 规格) | — | 空罐 + 五罐即站点地图;不叠加任何背景组件,Shooting Stars 弃用 |
 
-### 实验候补(从组件目录直接孵化 EXP)
+### 仪器备料(手法储备,不是实验)
 
-| 候补 | 组件 | 授权 | 构想 |
+**实验编号只发给有问题可问的观察(§5 /lab 策展三问),不发给组件。** 以下是手法库存,待某个真问题需要它们时再取用:
+
+| 手法 | 来源 | 授权 | 可能服务的方向 |
 |---|---|---|---|
-| EXP-004 specimen | Pixelated Canvas | pro | 照片变像素点阵,鼠标 repel/attract/swirl 扰动 |
-| EXP-005 the mirror | Webcam Pixel Grid | pro | 访客镜头实时变像素网格(纯本地渲染,进入页面才请求权限,页面上写明不上传) |
-| EXP-006 darkroom process | Dither Shader | pro | 实时 ordered dithering,Bayer/halftone 模式,配合摄影主题 |
-| 灵感库 | Labs 区(SVG Path Morphing、GTA VI Poster 等) | — | 读源码学手法,自己写变体 |
+| 图像像素化 + 指针扰动 | Pixelated Canvas,或自写 canvas 采样 | pro / 自写 | 记忆失真、照片降解类叙事 |
+| 摄像头实时像素网格 | getUserMedia + canvas,自写 | — | "镜子"类观察(纯本地渲染,页面写明不上传) |
+| ordered dithering / halftone | Paper Shaders(§10.3) | Apache 2.0 | 暗房冲印、梦境颗粒感 |
+| 灵感库 | Aceternity Labs 区(SVG Path Morphing 等) | — | 读源码学手法,自己写变体 |
 
-pro 组件是一次性付费 All-Access;**不必买**——EXP-004 与 EXP-006 用 Paper Shaders(§10.3)的 Image Dithering / Halftone Dots 免费实现,Webcam 像素网格核心是 getUserMedia + canvas 采样,可自己写。
+Aceternity Pro **不必买**:dithering/halftone 有 Paper Shaders 免费覆盖,像素采样类可自写。
 
 ### 明确不用的(及原因)
 

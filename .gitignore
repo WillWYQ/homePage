@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# raw AI observer reports for /about — contains PII, never commit
+/docs/OBSERVER-RAW.md
+
 # vercel
 .vercel
 
