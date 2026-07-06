@@ -13,6 +13,8 @@ export const WavyBackground = ({
   blur = 10,
   speed = "fast",
   waveOpacity = 0.5,
+  speedFactor = 1,
+  opacityFactor = 1,
   ...props
 }: {
   children?: any;
@@ -24,6 +26,10 @@ export const WavyBackground = ({
   blur?: number;
   speed?: "slow" | "fast";
   waveOpacity?: number;
+  /** 分时段调光(HOME-DESIGN §4.6):作用于基准速度的系数,基准参数不动 */
+  speedFactor?: number;
+  /** 分时段调光:作用于基准波形透明度的系数 */
+  opacityFactor?: number;
   [key: string]: any;
 }) => {
   const noise = createNoise3D();
@@ -35,6 +41,10 @@ export const WavyBackground = ({
     ctx: any,
     canvas: any;
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // 系数走 ref 进渲染循环:档位切换不重启 canvas(跨档瞬时,不做过渡)
+  const factorsRef = useRef({ speed: speedFactor, opacity: opacityFactor });
+  const drawStaticFrameRef = useRef<(() => void) | null>(null);
+
   const getSpeed = () => {
     switch (speed) {
       case "slow":
@@ -53,12 +63,29 @@ export const WavyBackground = ({
     h = ctx.canvas.height = window.innerHeight;
     ctx.filter = `blur(${blur}px)`;
     nt = 0;
+    // reduced-motion:画一帧后停(§DESIGN 2);首帧亮度仍按时段取值(§4.6)
+    const staticFrame = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
     window.onresize = function () {
       w = ctx.canvas.width = window.innerWidth;
       h = ctx.canvas.height = window.innerHeight;
       ctx.filter = `blur(${blur}px)`;
+      if (staticFrame) drawStaticFrameRef.current?.();
     };
-    render();
+    if (staticFrame) {
+      drawStaticFrameRef.current = () => {
+        // 单帧没有逐帧叠加,先铺不透明底,避免半透明背景漏色
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = backgroundFill || "black";
+        ctx.fillRect(0, 0, w, h);
+        ctx.globalAlpha = (waveOpacity || 0.5) * factorsRef.current.opacity;
+        drawWave(5);
+      };
+      drawStaticFrameRef.current();
+    } else {
+      render();
+    }
   };
 
   const waveColors = colors ?? [
@@ -69,7 +96,7 @@ export const WavyBackground = ({
     "#22d3ee",
   ];
   const drawWave = (n: number) => {
-    nt += getSpeed();
+    nt += getSpeed() * factorsRef.current.speed;
     for (i = 0; i < n; i++) {
       ctx.beginPath();
       ctx.lineWidth = waveWidth || 50;
@@ -86,7 +113,7 @@ export const WavyBackground = ({
   let animationId: number;
   const render = () => {
     ctx.fillStyle = backgroundFill || "black";
-    ctx.globalAlpha = waveOpacity || 0.5;
+    ctx.globalAlpha = (waveOpacity || 0.5) * factorsRef.current.opacity;
     ctx.fillRect(0, 0, w, h);
     drawWave(5);
     animationId = requestAnimationFrame(render);
@@ -96,8 +123,16 @@ export const WavyBackground = ({
     init();
     return () => {
       cancelAnimationFrame(animationId);
+      window.onresize = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 档位切换:更新系数;静态帧模式下重画一帧让新亮度生效
+  useEffect(() => {
+    factorsRef.current = { speed: speedFactor, opacity: opacityFactor };
+    drawStaticFrameRef.current?.();
+  }, [speedFactor, opacityFactor]);
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {

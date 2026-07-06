@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Lora } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { siteName } from "@/lib/site";
 
 const lora = Lora({subsets:['latin'],variable:'--font-serif'});
 
@@ -26,8 +27,12 @@ const METADATA_MAP: Record<string, Metadata> = {
   },
 };
 
-const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "willsleep";
 export const metadata: Metadata = METADATA_MAP[siteName] || METADATA_MAP.willsleep;
+
+// 暗色 theme-color:手机浏览器地址栏融入黑底(§DESIGN 10.5)
+export const viewport: Viewport = {
+  themeColor: "#000000",
+};
 
 export default function RootLayout({
   children,
@@ -39,7 +44,11 @@ export default function RootLayout({
       lang="en"
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-serif", lora.variable)}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        {/* 全站 grain 底噪(§DESIGN 10.3):静态、≤5%,访客不该注意到它 */}
+        <div aria-hidden="true" className="grain-overlay" />
+      </body>
     </html>
   );
 }
