@@ -413,6 +413,8 @@ Aceternity Pro **不必买**:dithering/halftone 有 Paper Shaders 免费覆盖,�
 
 Magic UI 与 Aceternity 高度重叠且更偏 SaaS 营销页,**不列为源**。副源取件同样过 §10.1 的配色收敛与 reduced-motion 降级。
 
+> 五家来源的完整组件清单快照(2026-07-05 实抓,含 ✅已用 / 📌已落位 / 🚫不用 / 💰付费标记与"按用途反查"表):**[COMPONENT-SOURCES.md](COMPONENT-SOURCES.md)**。
+
 ### 10.3 质感层:Paper Shaders(重点推荐)
 
 `@paper-design/shaders-react`,Apache 2.0,零依赖 WebGL shader,极轻量。这是"比普通博客好看"的关键弹药库:
