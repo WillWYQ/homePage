@@ -29,6 +29,10 @@
 
 签名效果:**SVG Mask Effect 手电筒**只作用于 ①(展牌段落)——黑暗中光圈扫过展牌文字。③④⑤ 正常显示,不要整页都要打手电,阅读优先。
 
+**本页只有这一个签名额度(§DESIGN 10.1 账本)。** 因此 ② ASCII 自画像**是静态印版**,不带 `animationStyle: "matrix"` 落字动画:两个入场演出叠在同一屏的上半部会互相抢戏,访客还没读到展牌就被打断;而静态印版本身更符合"档案"身份——档案里的照片是印上去的,不是正在生成的。
+
+字体分工(§DESIGN 2):③ 的引语用 Lora(证词是被阅读的),元信息行与批注用 mono 仪器排版规格;⑤ 收藏架的条目名与备注用 Geist Sans(清单是被浏览的),层标题用 mono。
+
 ## 3. ③ 观察记录(observer reports)——核心机制
 
 ### 3.1 数据来源
@@ -102,13 +106,13 @@ zod schema 落在 `lib/content-schema.ts` 的 `aboutSchema`(随 DESIGN.md §4 �
 
 - 结构性数据(observers / shelves 等)只住 canonical frontmatter;`index.zh.md` / `index.en.md` 只允许 `title` + 正文。
 - **观察者引语一律不翻译**:它们是证词,保持采集时的原语言(档案引原文是合理的,翻译反而失真)。zh/en 版翻译的是周边 UI 文字与展牌;引语原样出现。
-- 展牌 `placard` 属于结构字段但需要翻译——例外处理:允许 `placard_zh` / `placard_en` 字段住在 canonical frontmatter 里(仍是单一事实来源,不违反 §7.3 的"翻译文件不携带结构字段")。
+- 展牌 `placard` 属于结构字段但需要翻译:取 `placard_zh` / `placard_en` 住在 canonical frontmatter 里。这不是本页的特例,是 §DESIGN 7.3 的通则(结构字段的译文仍住 canonical),zod schema 按该通则放行。
 
 ## 7. 实现与降级
 
 - 页面组件 `<AboutPage locale>`(第 1 期签名规范)。
 - 手电筒:reduced-motion 或触屏无 hover 时,直接完整显示展牌(光圈默认全开)。
-- ASCII 自画像:动画降级为静态 `<pre>`;`aria-hidden`,旁边给真实的 `alt` 文字。
+- ASCII 自画像:本就是静态 `<pre>`(§2),无降级分支;`aria-hidden`,旁边给真实的 `alt` 文字。
 - 无 JS:全部内容可读(手电筒、动画都是增强层)。
 
 ## 8. 验收清单
@@ -116,6 +120,8 @@ zod schema 落在 `lib/content-schema.ts` 的 `aboutSchema`(随 DESIGN.md §4 �
 - [ ] §1 三条红线逐条过(含 PII 逐条检查观察引语与收藏备注)
 - [ ] 展牌 ≤60 字,构建期校验生效
 - [ ] 观察条目 5–8 条,每条有日期与证据等级
+- [ ] 全页只有一个签名效果(手电筒);ASCII 自画像无入场动画
+- [ ] 元信息行与批注符合 §DESIGN 2 仪器排版(text-xs / 400 / white/40,无字号阶)
 - [ ] reduced-motion / 无 JS / 触屏三种降级人工验证
 - [ ] zh/en 版:引语保持原文,周边文字已译,回落规则正常
 

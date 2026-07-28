@@ -17,6 +17,8 @@
 2. **通往 career 站的入口只有页脚一条小字链接**,带 UTM 参数(`?utm_source=willsleep.dev&utm_medium=referral&utm_campaign=personal-site`),永远不做 banner / CTA。
 3. **宁缺毋滥。** 板块没内容就先不上线入口,不放 "coming soon" 占位页(404 的"没通电"文案除外)。
 
+**档案纪律(全站,非仅 /notes):只追加,不重写。** 任何已发布的记录——note / REM / IR、实验的 observation 栏、/about 的观察条目——要更正就在文末补一行 mono `addendum: …`,不改原文。编号(EXP / REM / IR)永不复用;失败的实验标 `archived` 但不下架。与"不许假"同源:git 历史即编辑历史。
+
 ## 2. 视觉语言
 
 ### 色彩
@@ -37,6 +39,29 @@
 
 Mono 是这个站的性格担当:凡是"实验室仪表读数"性质的信息一律 mono + 小号 + `white/40`。
 
+**Lora 只出现在两处:走廊 h1 与长文正文。** 它是"被阅读的东西"的字体,不是"被浏览的东西"的字体——/now 的短句列表、/about 的收藏架、/lab 的卡片文字都归 Geist Sans。
+
+### 仪器排版(instrument type)
+
+"小号"不是规格。mono 承担的一切仪表读数在全站只有**一个**规格:
+
+| 项 | 值 |
+|---|---|
+| 字号 | `text-xs`(0.75rem),**不设大小阶** |
+| 粗细 | 400,**不设粗细阶、不设强调态** |
+| 行高 | 1(读数是一行,不是段落) |
+| 颜色 | `white/40` |
+
+真实仪器没有排版层级——万用表不会把重要的数读得大一点。**需要突出某个读数时,改的是它出现的位置,不是它的字号。**
+
+- 唯一例外:实验详情页 HUD 内的 `EXP-001` 徽标可用 `white/70`——它是这一屏的身份,不是读数。
+- 交互性 mono 文字(走廊导航五扇门)不属读数,走 `white/60`(对比度下限,§HOME 4.2),同样不设字号阶。
+- 判据:**任意两个房间的读数并排截图,应当分不出各自来自哪个房间。**
+
+### 间距节律
+
+以 mono 读数的行盒(12px)为基数,页面纵向节律取 `12 × {1, 2, 4, 8}`(12 / 24 / 48 / 96px)。正文块**内部**另走 1.75 行高(§10.5),块与块之间仍回到这套基数。全站一套数,不两套。
+
 ### 动效原则(质感 > 动画)
 
 这个站不是网页效果陈列馆。动效分四层,预算写死:
@@ -45,7 +70,7 @@ Mono 是这个站的性格担当:凡是"实验室仪表读数"性质的信息一
 |---|---|---|
 | 底噪层 | 全站 grain 颗粒(§10.3) | 透明度 ≤5%,访客不该"注意到"它,只该在它消失时觉得少了点什么 |
 | 微交互层 | hover / focus / 链接过渡 | ≤200ms、幅度小,像材质的物性,不像"动画" |
-| 签名层 | 每房间至多一个叙事效果(§10.1 落位表) | **入场演一次即静止**(翻牌屏翻完即停,手电筒是访客自己在动),不自动循环 |
+| 签名层 | 每条路由段至多一个叙事效果(§10.1 签名账本) | **入场演一次即静止**(揭幕演完即停,手电筒是访客自己在动),不自动循环 |
 | 实验层 | 持续运动的 canvas / shader | **只许存在于 /lab/[slug] 全屏页内**,不外溢到任何房间 |
 
 - **判据:无人触发、无限循环的动画是"效果显示器"的标志。** 全站只有两处豁免:首页 Wavy(那是走廊的灯,建筑的一部分,不是展品)与实验层内部。
@@ -98,7 +123,7 @@ content/
 │   ├── index.md               # 自述 + 收藏架(frontmatter)
 │   └── portrait.jpg
 ├── lab/
-│   └── 001-vortex-field/
+│   └── 001-breathing-field/
 │       ├── index.md           # 实验信息面板文字(实验代码在 components/experiments/)
 │       └── poster.png
 ├── notes/
@@ -154,8 +179,9 @@ photos:
 
 ### /now — 值班表
 
-- 一页纸,四个 mono 小节标题:`tinkering` / `reading` / `thinking about` / `listening to`,内容为混排短句列表。
-- 顶部一行仪表读数:`last updated: 2026-07-02`。
+- 一页纸,四个 mono 小节标题:`tinkering` / `reading` / `thinking about` / `listening to`,内容为混排短句列表(Geist Sans,非 Lora——清单是被浏览的,不是被阅读的,§2)。
+- 顶部一行仪表读数:`last updated: 2026-07-02`。**这一行是本页唯一的仪表位**,已被占用(HOME §9 的 `night N` 计数因此正式出局)。
+- **签名效果:无。** 这是全站最短的一页,它接受"默认答案是没有"(§10.1 账本)。它的性格来自克制本身,不来自演出。
 - 数据源:`content/now/index.md`,更新就是改一个文件。页面本体是 Server Component,构建时静态化。
 
 ### /lab — 实验区
@@ -177,7 +203,12 @@ photos:
   - `EXP-001 breathing field` — Wavy 场按 4-7-8 呼吸节律起伏,访客跟着屏幕呼吸。问题:*一块屏幕能不能把人的呼吸降到入睡的频率?* 这是一件真能用来助眠的工具,不是演示。
   - `EXP-002 tonight's tides` — 输入就寝时间,90 分钟睡眠周期化作潮汐波形铺开,浅睡窗口标绿。问题:*今晚几点醒,最不难受?*
   - `EXP-003 dream decay` — 反转 EncryptedText:访客写下一段梦(vanish input),文字在每次重读时丢失、错乱一点,模拟晨间遗忘。问题:*梦是在哪一次复述里丢掉的?*
-- **候补方向(从身份长出来,不从组件目录长出来):** 白/棕噪声混音台(Web Audio,可用的助眠工具)· 04:04 失眠钟(404 B 案转正)· REM observatory(等 /notes 攒够梦境记录,把自己的梦做成数据仪表——notes 喂 lab,房间连通)· `EXP-000 the bit outside the mask`(站名创世神话:一枚拒绝被掩码的 bit,可玩的位运算小机器)。
+- **候补方向(从身份长出来,不从组件目录长出来):候补同样必须带一个问句,答不出就不进候补。**
+  - `the noise floor` 白/粉/棕噪声混音台 — *多低的噪声地板,能盖住一个睡不着的脑子?*(完整规格见 SOUND-DESIGN §5)
+  - `room tone` 楼的底噪 — *一栋按夜作息的楼,每个时段听起来是什么样?*(SOUND-DESIGN §5)
+  - `REM observatory` — *把自己一年的梦画成数据,看得出季节吗?*(等 /notes 攒够梦境记录——notes 喂 lab,房间连通)
+  - `EXP-000 the bit outside the mask` — *一枚拒绝被掩码的 bit,会发生什么?*(站名创世神话,可玩的位运算小机器)
+  - **已出局:** "04:04 失眠钟"——04:04 的唯一主场是走廊(§HOME 4.3④),一晚一分钟才值钱,不在第三处复述。
 - **编号永不复用;实验可标 `archived` 但不下架**——失败的实验也是记录,这也是系统工程师的诚实。
 
 ### /notes — 档案室
@@ -197,7 +228,7 @@ photos:
   2026-07-01 · 为什么便利店的灯比家里诚实
   ```
 - **文章页:** Lora 正文,行宽 `max-w-prose`;dream 与 incident 顶部一行仪表读数(`recorded: 07-02 06:41 · lucidity: 2/5` / `severity: SEV-3 · status: resolved`),字段可选。
-- **档案纪律:只追加,不重写。** 发布后的记录要更正就在文末补一行 mono `addendum: …`,不改原文——与"不许假"同源,git 历史即编辑历史。
+- **档案纪律:** 遵全站规定(§1),不另设。records 只追加不重写,更正走文末 mono `addendum:`。
 - **空旷合法:** 三种类型都无产出义务(红线 3 不硬凑);列表页设计须在只有 5 条时就成立,不靠数量撑场面。
 - **内容管线:** `content/notes/<slug>/index.md`(文件夹即 slug,见 §4),构建时 gray-matter 读 frontmatter + unified/remark 编译正文;随文图与正文同文件夹,相对引用。frontmatter:
 
@@ -246,7 +277,7 @@ status: resolved   # resolved | ongoing | wontfix
 - **幽默层:** 空罐标签上打印访客敲错的路径(客户端读 `location.pathname`,静态 `404.html` 可行;读不到时印 `unknown specimen`),盖章 `SPECIMEN MISSING`。**印章同为终端绿**——不为一枚章破"单一强调色"的法(§2)。
 - **实用层:** 五只有标本的罐子就是站点地图,点击即进房间;架子下方一行 mono 小字 `◂ back to the corridor` 回首页(走廊不在五罐之列)。
 - **实现与降级:** 全 CSS/SVG(罐体矢量 + 荧光用 filter/box-shadow),不用 canvas;无 JS 时罐子退化为普通链接、标签印 `unknown specimen`;`prefers-reduced-motion` 全静态。不加音效。
-- **B 案(罐子视觉超预算时降级):** 失眠钟三幕——永远停在 `04:04` 的钟(点击拨针会弹回)→ 钟下说明文字每隔几秒悄变,第三变揭穿 "text keeps changing? you're dreaming — this url never existed" → 钟跳到 `04:05`,浮现 "wake up into:" + 五房间链接。纯文字 + 定时器,一小时可上线。
+- **B 案(罐子视觉超预算时降级):** 失眠钟三幕——永远停在 `04:04` 的钟(与走廊 04:04 读数同一时刻,§HOME 4.3④;这里是那个梗的**静止镜像**,不重新解释它)(点击拨针会弹回)→ 钟下说明文字每隔几秒悄变,第三变揭穿 "text keeps changing? you're dreaming — this url never existed" → 钟跳到 `04:05`,浮现 "wake up into:" + 五房间链接。纯文字 + 定时器,一小时可上线。
 
 ## 6. 图片同步管线(scripts/sync-images.mjs)
 
@@ -311,6 +342,7 @@ type Locale = 'canonical' | 'zh' | 'en'
 - 请求 zh/en 而翻译文件不存在 → 构建期回落:渲染 canonical 正文 + 顶部一行 mono 标注。zh:`本页暂无中文全译,以下为混排原文`;en:`translation pending — showing the original (mixed)`。
 - 无文字内容的单元(纯图组)三版天然相同:不算回落,不出标注。
 - **结构性字段只住 canonical 的 frontmatter**(date / type / rem / lucidity / photos 列表等)。翻译文件的 frontmatter 只允许 `title` 与 `summary`,zod 用收紧的 schema 校验翻译文件——两处日期不一致这类漂移在结构上不可能发生。
+- **结构字段需要翻译时,译文仍住 canonical**,取 `<field>_zh` / `<field>_en` 形式(如 /about 的 `placard_zh`,§ABOUT 6)。单一事实来源不变,翻译文件永远不携带结构字段。
 
 ### 7.4 UI 字典与切换器
 
@@ -369,18 +401,32 @@ type Locale = 'canonical' | 'zh' | 'en'
 
 **总原则:每个房间最多一个签名效果。** 组件为叙事服务,不为炫技堆叠。
 
-### 落位表
+### 签名账本(signature ledger)
 
-| 房间 | 签名效果 | 组件 | 授权 | 说明 |
+落位表不是建议清单,是**账本**。记账规则:
+
+- **一个签名额度 = 一条路由段。** `/lab` 与 `/lab/[slug]` 是两个额度;`/lab/[slug]` 内部的持续运动属实验层(§2),不占索引页的额度。
+- **登记范围 = 一切"演一次"性质的演出**:入场动画、揭幕、hover 增强、揭示。不只是"背景组件"。
+- **不在账本里的效果不是签名效果,也就不许存在。** 新增任何演出前先来这张表申请额度;额度已满就得先撤掉旧的。
+- 签名效果一律遵签名层预算(§2):入场演一次即静止,不自动循环。
+
+| 路由段 | 签名效果 | 组件 | 授权 | 说明 |
 |---|---|---|---|---|
-| / 走廊 | 已有 Vortex + Wavy | — | — | 不再加任何组件;分时段调光与门缝读数是既有元素的行为,不是新东西(HOME-DESIGN §4.3/§4.6) |
-| /now 值班表 | 页首标题行 | **Text Flipping Board** | free | Vestaboard 翻牌显示屏,"值班表/发车牌"的完美实体;`sound: false` |
+| / 走廊 | 已有 Vortex 开场 + Wavy 灯 | — | — | 不再加任何组件;分时段调光与门缝读数是既有元素的行为,不是新东西(HOME-DESIGN §4.3/§4.6) |
+| /now 值班表 | **无** | — | — | 接受默认答案。全站最短的一页,性格是克制到近乎冷淡:四个 mono 小节标题 + 混排短句 + 一行 `last updated`。Text Flipping Board 已否决(见下) |
 | /lab 索引 | 网格 hover | **Focus Cards** | free | hover 聚焦一张、其余暗化,像实验室橱窗;备选 Evervault Card(hover 加密字符流,与解密美学同源)二选一 |
-| /lab EXP-003 dream decay | 输入框 | **Placeholders And Vanish Input** | free | 写下的梦消散,再以损坏的形态重现——组件在此是仪器,服务遗忘的叙事(§5 /lab) |
+| /lab/[slug] | 实验本体 | 各实验自带 | — | 属实验层,不受签名层"演一次即停"约束;每个实验仍只有一件展品 |
 | /notes 档案室 | 无 | — | — | 阅读优先,纯排版 |
 | /photos 暗房 | 灯箱放大镜 | **Lens** | free | 暗房里拿放大镜看底片;索引页只用 blurhash 淡入 |
-| /about 研究员 | 开场段落 | **SVG Mask Effect** | free | 鼠标是一束手电筒光,照到哪读到哪;自画像用 **ASCII Art**(free,`animationStyle: "matrix"`) |
+| /about 研究员 | 展牌手电筒 | **SVG Mask Effect** | free | 鼠标是一束手电筒光,照到哪读到哪,只作用于①展牌。**ASCII 自画像为静态印版**(无 matrix 落字),不占第二个额度(§ABOUT 2) |
 | 404 | 标本架整体 | 自制(CSS/SVG,见 §5 404 规格) | — | 空罐 + 五罐即站点地图;不叠加任何背景组件,Shooting Stars 弃用 |
+
+**账本否决记录:**
+
+| 提案 | 否决理由 |
+|---|---|
+| /now 用 Text Flipping Board 做签名 | 翻牌过程不携带 /now 的任何信息(策展第三问不过),且入场期间令访客唯一来看的那句话不可读。比喻很准,行为不合格——移入"仪器备料",日后若做"构建日志"彩蛋再议 |
+| /about ASCII 自画像保留 `animationStyle:"matrix"` | 与手电筒争夺同一屏上半部的入场演出,超签名额度;静态 `<pre>` 更符合"档案"身份——档案里的照片是印上去的,不是正在生成的 |
 
 ### 仪器备料(手法储备,不是实验)
 
@@ -391,6 +437,7 @@ type Locale = 'canonical' | 'zh' | 'en'
 | 图像像素化 + 指针扰动 | Pixelated Canvas,或自写 canvas 采样 | pro / 自写 | 记忆失真、照片降解类叙事 |
 | 摄像头实时像素网格 | getUserMedia + canvas,自写 | — | "镜子"类观察(纯本地渲染,页面写明不上传) |
 | ordered dithering / halftone | Paper Shaders(§10.3) | Apache 2.0 | 暗房冲印、梦境颗粒感 |
+| 翻牌显示屏 | Text Flipping Board | free | 值班表/发车牌调性契合但行为不合格(§10.1 账本否决);日后若做"构建日志"彩蛋再取,`sound: false` |
 | 灵感库 | Aceternity Labs 区(SVG Path Morphing 等) | — | 读源码学手法,自己写变体 |
 
 Aceternity Pro **不必买**:dithering/halftone 有 Paper Shaders 免费覆盖,像素采样类可自写。
@@ -401,7 +448,7 @@ Aceternity Pro **不必买**:dithering/halftone 有 Paper Shaders 免费覆盖,�
 - **Hero Parallax、Macbook Scroll、Bento Grid、Timeline、Infinite Moving Cards、Testimonials / Pricing / CTA / Logo Clouds、World Map、GitHub Globe** — SaaS 营销页 DNA,违背 §1 定位
 - **Aurora / Background Beams / Sparkles / Meteors 等背景类再叠加** — 每页一个签名效果,首页已有 Wavy
 - **Canvas Text、Colourful Text、Flip Words** — 多彩,违背单一强调色(§2)
-- **Terminal** — 好看但和 Flipping Board 调性重复,/now 只留一个;若日后做"构建日志"彩蛋再启用(`enableSound: false`)
+- **Terminal** — 好看,但 /now 已定为无签名效果(§10.1);与 Flipping Board 一同退回仪器备料,若日后做"构建日志"彩蛋再议(`enableSound: false`)
 
 ### 接入注意
 
@@ -426,12 +473,12 @@ Magic UI 与 Aceternity 高度重叠且更偏 SaaS 营销页,**不列为源**。
 
 `@paper-design/shaders-react`,Apache 2.0,零依赖 WebGL shader,极轻量。这是"比普通博客好看"的关键弹药库:
 
-- **Image Dithering / Halftone Dots / Halftone CMYK** — 暗房主题的照片处理效果,直接顶替 Aceternity Pro 的 Dither Shader / Pixelated Canvas(EXP-004、006 免费实现)
+- **Image Dithering / Halftone Dots / Halftone CMYK** — 暗房主题的照片处理效果,直接顶替 Aceternity Pro 的 Dither Shader / Pixelated Canvas,服务暗房与记忆失真类实验
 - **Grain Gradient / Paper Texture** — 全站质感底噪:极低透明度的颗粒叠层,是"屏幕发光的实验室"和"平板黑背景"的分水岭
 - **God Rays / Smoke Ring / Neuro Noise / Metaballs** — /lab 实验现成素材
 - **Static Mesh Gradient** — 若某页需要非纯黑背景,用静态版,不引入动画
 
-用法纪律:图像滤镜类进 /photos 与 /lab;全站层面**只允许 Grain 一层**,透明度 ≤ 5%,不与其他背景效果叠加。
+用法纪律:图像滤镜类进 /photos 与 /lab;全站层面**只允许 Grain 一层**,透明度 ≤ 5%。**除走廊豁免的 Wavy 外**(§HOME 4.5),不与任何背景效果叠加。
 
 ### 10.4 动画运行时纪律
 
@@ -451,7 +498,7 @@ Magic UI 与 Aceternity 高度重叠且更偏 SaaS 营销页,**不列为源**。
 - [ ] 链接样式全站统一:`underline underline-offset-4` + hover 变绿,不出现三种以上链接样式
 - [ ] 空状态与加载态也要设计(照片加载 = blurhash,不出现布局跳动)
 - [ ] 暗色 `theme-color` meta,手机浏览器地址栏融入黑底
-- [ ] 灵感对照:godly.website、minimal.gallery 里的暗色个人站,发布前拿自己的页面并排比一次
+- [ ] 读数一致性:任取两个房间的仪表读数并排截图,分不出出处(§2 仪器排版)
 
 ---
 

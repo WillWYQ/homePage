@@ -1,9 +1,9 @@
 # 组件来源目录快照
 
 > willsleep.dev · 2026-07-05 实抓
-> 五家来源的完整组件清单,供开发时翻仓取件。**本文档只是库存目录,不是决策记录**——用什么、怎么用,以 [DESIGN.md](DESIGN.md) §2(动效四层预算)、§5 /lab(策展三问:组件是仪器不是展品)、§10(落位表与配色收敛)为准。
+> 五家来源的完整组件清单,供开发时翻仓取件。**本文档只是库存目录,不是决策记录**——用什么、怎么用,以 [DESIGN.md](DESIGN.md) §2(动效四层预算)、§5 /lab(策展三问:组件是仪器不是展品)、§10.1(**签名账本**——额度以路由段计,不在账本里的效果不许存在)与配色收敛为准。
 >
-> 标记说明:✅ 已在用 · 📌 已进落位表 · 🚫 已明确不用 · 💰 Pro 付费
+> 标记说明:✅ 已在用 · 📌 已进签名账本 · 🚫 已明确不用 · 💰 Pro 付费
 
 ---
 
@@ -17,10 +17,10 @@
 Webcam Pixel Grid 💰 · Images Badge · Parallax Hero Images 🚫 · Scales · Dotted Glow Background 💰 · Background Ripple Effect · Sparkles 🚫 · Background Gradient · Gradient Animation · **Wavy Background ✅(走廊的灯)** · Background Boxes · Background Beams 🚫 · Background Beams With Collision 🚫 · Background Lines · Aurora Background 🚫 · Meteors 🚫 · Glowing Stars · Shooting Stars · **Vortex ✅(开场仪式)** · Spotlight / Spotlight New · Canvas Reveal Effect · **SVG Mask Effect 📌(/about 手电筒)** · Tracing Beam · Lamp Effect · Grid and Dot Backgrounds · Glowing Effect · Google Gemini Effect 🚫
 
 ### Card Components
-Keyboard · Terminal(备用:构建日志彩蛋,`enableSound: false`)· Tooltip Card · **ASCII Art 📌(/about 自画像)** · Pixelated Canvas 💰(仪器备料)· 3D Card Effect · Evervault Card(曾为 /lab 索引备选)· Card Stack · Card Hover Effect · Wobble Card · Expandable Card · Card Spotlight · **Focus Cards 📌(/lab 索引 hover)** · Infinite Moving Cards 🚫 · Draggable Card · Comet Card · Glare Card · Direction Aware Hover
+Keyboard · Terminal(备用:构建日志彩蛋,`enableSound: false`)· Tooltip Card · **ASCII Art 📌(/about 自画像,静态印版,不用 matrix 动画)** · Pixelated Canvas 💰(仪器备料)· 3D Card Effect · Evervault Card(曾为 /lab 索引备选)· Card Stack · Card Hover Effect · Wobble Card · Expandable Card · Card Spotlight · **Focus Cards 📌(/lab 索引 hover)** · Infinite Moving Cards 🚫 · Draggable Card · Comet Card · Glare Card · Direction Aware Hover
 
 ### Text Components
-Canvas Text 💰🚫(多彩)· **Encrypted Text ✅(开场句;EXP-003 反转用)** · Layout Text Flip · Colourful Text 🚫 · Squiggly Text · Text Generate Effect · Typewriter Effect · Flip Words 🚫 · Text Hover Effect · Container Text Flip · Hero Highlight · **Text Reveal Card ✅(仓库内,未落位)** · **Text Flipping Board 📌(/now 值班表,sound: false,翻完即停)**
+Canvas Text 💰🚫(多彩)· **Encrypted Text ✅(开场句;EXP-003 反转用)** · Layout Text Flip · Colourful Text 🚫 · Squiggly Text · Text Generate Effect · Typewriter Effect · Flip Words 🚫 · Text Hover Effect · Container Text Flip · Hero Highlight · **Text Reveal Card ✅(仓库内,未落位)** · **Text Flipping Board 🚫(/now 曾落位,2026-07-28 账本否决;退回仪器备料)**
 
 ### Inputs / Buttons / Cursor / 其他
 **Placeholders And Vanish Input 📌(EXP-003 dream decay 输入)** · Gooey Input · File Upload · Signup Form 🚫 · **Magnetic Button ✅(仓库内,当前未使用)** · Noise Background · Hover Border Gradient · Moving Border · Stateful Button · Multi Step Loader · Loader · Following Pointer · Pointer Highlight · **Lens 📌(/photos 灯箱放大镜)** · Dither Shader 💰(仪器备料,Paper Shaders 免费替代)· Animated Modal · Animated Tooltip · Link Preview
