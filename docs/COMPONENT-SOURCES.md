@@ -14,7 +14,7 @@
 - **依赖:** motion/react + Tailwind,与本仓库现状一致
 
 ### Backgrounds & Effects
-Webcam Pixel Grid 💰 · Images Badge · Parallax Hero Images 🚫 · Scales · Dotted Glow Background 💰 · Background Ripple Effect · Sparkles 🚫 · Background Gradient · Gradient Animation · **Wavy Background ✅(走廊的灯)** · Background Boxes · Background Beams 🚫 · Background Beams With Collision 🚫 · Background Lines · Aurora Background 🚫 · Meteors 🚫 · Glowing Stars · Shooting Stars · **Vortex ✅(开场仪式)** · Spotlight / Spotlight New · Canvas Reveal Effect · **SVG Mask Effect 📌(/about 手电筒)** · Tracing Beam · Lamp Effect · Grid and Dot Backgrounds · Glowing Effect · Google Gemini Effect 🚫
+Webcam Pixel Grid 💰 · Images Badge · Parallax Hero Images 🚫 · Scales · Dotted Glow Background 💰 · Background Ripple Effect · Sparkles 🚫 · Background Gradient · Gradient Animation · **Wavy Background ✅(走廊的灯)** · Background Boxes · Background Beams 🚫 · Background Beams With Collision 🚫 · Background Lines · Aurora Background 🚫 · Meteors 🚫 · Glowing Stars · Shooting Stars · **Vortex ✅(开场仪式)** · Spotlight / Spotlight New · Canvas Reveal Effect · **SVG Mask Effect ✅手法(/about 手电筒:未装组件,取其蒙版手法自写 radial-gradient 版)** · Tracing Beam · Lamp Effect · Grid and Dot Backgrounds · Glowing Effect · Google Gemini Effect 🚫
 
 ### Card Components
 Keyboard · Terminal(备用:构建日志彩蛋,`enableSound: false`)· Tooltip Card · **ASCII Art 📌(/about 自画像,静态印版,不用 matrix 动画)** · Pixelated Canvas 💰(仪器备料)· 3D Card Effect · Evervault Card(曾为 /lab 索引备选)· Card Stack · Card Hover Effect · Wobble Card · Expandable Card · Card Spotlight · **Focus Cards 📌(/lab 索引 hover)** · Infinite Moving Cards 🚫 · Draggable Card · Comet Card · Glare Card · Direction Aware Hover

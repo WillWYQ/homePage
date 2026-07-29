@@ -91,7 +91,7 @@ export function Corridor({
           latestLine={latestLine}
           peekLine={peekLine}
         />
-        <SiteFooter locale={locale} />
+        <SiteFooter locale={locale} floating />
       </main>
     </div>
   );

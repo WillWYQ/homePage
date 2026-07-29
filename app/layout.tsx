@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Lora } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { siteName } from "@/lib/site";
+import { siteName, SITE_URL } from "@/lib/site";
 
 const lora = Lora({subsets:['latin'],variable:'--font-serif'});
 
@@ -27,7 +27,10 @@ const METADATA_MAP: Record<string, Metadata> = {
   },
 };
 
-export const metadata: Metadata = METADATA_MAP[siteName] || METADATA_MAP.willsleep;
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  ...(METADATA_MAP[siteName] || METADATA_MAP.willsleep),
+};
 
 // 暗色 theme-color:手机浏览器地址栏融入黑底(§DESIGN 10.5)
 export const viewport: Viewport = {

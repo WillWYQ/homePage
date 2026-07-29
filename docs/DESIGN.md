@@ -428,7 +428,7 @@ type Locale = 'canonical' | 'zh' | 'en'
 | /lab/[slug] | 实验本体 | 各实验自带 | — | 属实验层,不受签名层"演一次即停"约束;每个实验仍只有一件展品 |
 | /notes 档案室 | 无 | — | — | 阅读优先,纯排版 |
 | /photos 暗房 | 灯箱放大镜 | **Lens** | free | 暗房里拿放大镜看底片;索引页只用 blurhash 淡入 |
-| /about 研究员 | 展牌手电筒 | **SVG Mask Effect** | free | 鼠标是一束手电筒光,照到哪读到哪,只作用于①展牌。**ASCII 自画像为静态印版**(无 matrix 落字),不占第二个额度(§ABOUT 2) |
+| /about 研究员 | 展牌手电筒 | 自写(手法取自 **SVG Mask Effect**) | — | 鼠标是一束手电筒光,照到哪读到哪,只作用于①展牌。原组件是 h-screen 全屏、依赖 `/mask.svg`、且带 `dark:` 明暗反转,三样都不要——改写为 radial-gradient 蒙版(`components/about/placard-flashlight.tsx`)。**ASCII 自画像为静态印版**(无 matrix 落字),不占第二个额度(§ABOUT 2) |
 | 404 | 标本架整体 | 自制(CSS/SVG,见 §5 404 规格) | — | 空罐 + 五罐即站点地图;不叠加任何背景组件,Shooting Stars 弃用 |
 
 **账本否决记录:**

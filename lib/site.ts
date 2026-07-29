@@ -2,6 +2,11 @@
 export const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "willsleep";
 export const isWillsleep = siteName === "willsleep";
 
+// metadataBase / sitemap / robots 的绝对地址来源(§DESIGN 8)
+export const SITE_URL = isWillsleep
+  ? "https://willsleep.dev"
+  : "https://yueqiao.dev";
+
 export const SITE_COPY: Record<string, { title: string; tagline: string }> = {
   willsleep: { title: "The Sleep Lab", tagline: "a space for dreaming" },
   yueqiao: { title: "Yueqiao Dev", tagline: "Coming soon" },

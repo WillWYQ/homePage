@@ -48,6 +48,57 @@ const STRINGS = {
     zh: "点击进入 ↵",
     en: "tap to enter ↵",
   },
+  // /now 值班表(§DESIGN 5)。小节标题是仪表面板上的刻度名,保持英文。
+  "now.section.tinkering": { canonical: "tinkering", zh: "在折腾", en: "tinkering" },
+  "now.section.reading": { canonical: "reading", zh: "在读", en: "reading" },
+  "now.section.thinking": {
+    canonical: "thinking about",
+    zh: "在想",
+    en: "thinking about",
+  },
+  "now.section.listening": {
+    canonical: "listening to",
+    zh: "在听",
+    en: "listening to",
+  },
+  "now.lastUpdated": { canonical: "last updated", zh: "最近更新", en: "last updated" },
+
+  // /about 驻留研究员(ABOUT-DESIGN §2 的分节)
+  "about.observers": {
+    canonical: "observer reports",
+    zh: "观察记录",
+    en: "observer reports",
+  },
+  "about.naming": {
+    canonical: "why will sleep",
+    zh: "关于这个名字",
+    en: "why will sleep",
+  },
+  "about.shelves": { canonical: "shelves", zh: "收藏架", en: "shelves" },
+  "about.annotation": { canonical: "本人批注", zh: "本人批注", en: "resident's note" },
+
+  // 404 标本架(§DESIGN 5)
+  "notFound.stamp": {
+    canonical: "SPECIMEN MISSING",
+    zh: "SPECIMEN MISSING",
+    en: "SPECIMEN MISSING",
+  },
+  "notFound.unknown": {
+    canonical: "unknown specimen",
+    zh: "unknown specimen",
+    en: "unknown specimen",
+  },
+  "notFound.lastSeen": {
+    canonical: "last seen: in a dream",
+    zh: "最后一次出现: 在一个梦里",
+    en: "last seen: in a dream",
+  },
+  "notFound.back": {
+    canonical: "◂ back to the corridor",
+    zh: "◂ 回到走廊",
+    en: "◂ back to the corridor",
+  },
+
   // 页脚 career 暗门(文案 2026-07-02 定稿,不动)
   "footer.career": {
     canonical: "Looking for my engineering work?",

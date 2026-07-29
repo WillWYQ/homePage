@@ -11,11 +11,11 @@ export type Room = {
 };
 
 export const ROOMS: readonly Room[] = [
-  { id: "now", href: "/now", open: false },
-  { id: "lab", href: "/lab", open: false },
-  { id: "notes", href: "/notes", open: false },
-  { id: "photos", href: "/photos", open: false },
-  { id: "about", href: "/about", open: false },
+  { id: "now", href: "/now", open: true }, // 第 1 期
+  { id: "lab", href: "/lab", open: false }, // 第 2 期
+  { id: "notes", href: "/notes", open: false }, // 第 3 期
+  { id: "photos", href: "/photos", open: false }, // 第 4 期
+  { id: "about", href: "/about", open: true }, // 第 1 期
 ];
 
 export function openRooms(): Room[] {

@@ -80,8 +80,10 @@
   --sidebar-accent-foreground: oklch(0.214 0.009 43.1);
   --sidebar-border: oklch(0.922 0.005 34.3);
   --sidebar-ring: oklch(0.714 0.014 41.2);
-  --background: oklch(54.243% 0.23756 290.796);
-  --foreground: oklch(0.147 0.004 49.3);
+  /* 全站深色无浅色模式(§DESIGN 2)——实验室夜里才开灯。
+     :root 直接就是暗色,不留 shadcn 默认的浅色底(过扫区会漏出来)。 */
+  --background: #000;
+  --foreground: oklch(1 0 0);
 }
 
 .dark {
@@ -147,6 +149,39 @@
   outline-offset: 2px;
 }
 
+/* 滚动条:细、深灰、hover 变绿 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #22c55e;
+}
+
+/* 中英混排的自动留白(§DESIGN 10.5 排版节奏);不支持的浏览器自然忽略 */
+body {
+  text-autospace: normal;
+}
+
+/* 过场(HOME-DESIGN §5):开门,不是转场秀——
+   ≤300ms 交叉淡入,ease-out,无位移无缩放。 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: ease-out;
+}
+
 /* 走廊标题区:直接抵达时 200ms 淡入(HOME-DESIGN §4.1,微交互层预算) */
 @keyframes corridor-fade-in {
   from {
@@ -172,6 +207,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .corridor-enter {
+    animation: none;
+  }
+  /* 过场也取消:降级访客得到瞬时切换 */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
     animation: none;
   }
 }

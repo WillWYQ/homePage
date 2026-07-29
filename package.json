@@ -15,6 +15,7 @@
     "class-variance-authority": "latest",
     "clsx": "latest",
     "framer-motion": "latest",
+    "gray-matter": "^4.0.3",
     "motion": "^12.40.0",
     "nanoid": "^5.1.9",
     "next": "latest",
@@ -31,9 +32,10 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "eslint": "latest",
+    "eslint": "^9.39.5",
     "eslint-config-next": "latest",
     "tailwindcss": "latest",
-    "typescript": "latest"
-  }
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72"
 }
