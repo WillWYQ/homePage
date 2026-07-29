@@ -79,7 +79,9 @@ export const WavyBackground = ({
         ctx.globalAlpha = 1;
         ctx.fillStyle = backgroundFill || "black";
         ctx.fillRect(0, 0, w, h);
-        ctx.globalAlpha = (waveOpacity || 0.5) * factorsRef.current.opacity;
+        // 单帧不叠加,所以不乘 waveOpacity(那是给逐帧累积用的衰减量)——
+        // 直接用灯档系数当亮度,否则 day 档 0.5×0.45 打在纯黑上几乎看不见
+        ctx.globalAlpha = factorsRef.current.opacity;
         drawWave(5);
       };
       drawStaticFrameRef.current();
@@ -97,6 +99,7 @@ export const WavyBackground = ({
   ];
   const drawWave = (n: number) => {
     nt += getSpeed() * factorsRef.current.speed;
+    // 亮度由调用方通过 globalAlpha 设定(逐帧路径与单帧路径的基数不同)
     for (i = 0; i < n; i++) {
       ctx.beginPath();
       ctx.lineWidth = waveWidth || 50;
@@ -112,9 +115,13 @@ export const WavyBackground = ({
 
   let animationId: number;
   const render = () => {
+    // 两个 alpha 管两件不相干的事,不能共用一个(HOME-DESIGN §4.6):
+    // ① 铺底黑的浓度 = 残影衰减速度,与灯亮不亮无关,恒为基准值
     ctx.fillStyle = backgroundFill || "black";
-    ctx.globalAlpha = (waveOpacity || 0.5) * factorsRef.current.opacity;
+    ctx.globalAlpha = waveOpacity || 0.5;
     ctx.fillRect(0, 0, w, h);
+    // ② 波形描边的浓度 = 灯的亮度,这里才该乘灯档系数
+    ctx.globalAlpha = (waveOpacity || 0.5) * factorsRef.current.opacity;
     drawWave(5);
     animationId = requestAnimationFrame(render);
   };
