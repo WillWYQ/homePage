@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getLabExperiments } from "@/lib/content";
 import { openRooms } from "@/lib/rooms";
 import { isWillsleep, SITE_URL } from "@/lib/site";
 
@@ -16,6 +17,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     home,
     ...openRooms().map((room) => ({
       url: `${SITE_URL}${room.href}/`,
+      lastModified: new Date(),
+    })),
+    // /lab 详情:逐实验收录(§DESIGN 7.5——真实存在的路由才进 sitemap)。
+    ...getLabExperiments().map((e) => ({
+      url: `${SITE_URL}/lab/${e.slug}/`,
       lastModified: new Date(),
     })),
   ];
