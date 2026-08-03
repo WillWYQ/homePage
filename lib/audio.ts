@@ -105,10 +105,17 @@ class AudioEngine {
     gain.connect(this.master);
     src.start();
 
+    // setLevel 节流到 ~12 Hz:长时程会话(数小时)里避免 automation 事件无限累积;
+    // 0.12 s ramp 保证听感上依然平滑。
+    let lastLevelAt = -Infinity;
+
     return {
       setLevel(v: number) {
+        const now = ctx.currentTime;
+        if (now - lastLevelAt < 0.08) return;
+        lastLevelAt = now;
         const target = Math.max(0, Math.min(1, v)) * VOICE_MAX;
-        gain.gain.setTargetAtTime(target, ctx.currentTime, RAMP_ATTACK);
+        gain.gain.setTargetAtTime(target, now, RAMP_ATTACK);
       },
       stop() {
         gain.gain.setTargetAtTime(0, ctx.currentTime, RAMP_FAST);

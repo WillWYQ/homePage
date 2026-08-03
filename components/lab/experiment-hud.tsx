@@ -29,7 +29,7 @@ export function ExperimentHUD({
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col p-6 font-mono text-xs">
-      {/* 顶行:徽标(可点,展开记录面板) + 返回 */}
+      {/* 顶行:徽标(可点,展开记录面板);右侧 = 快捷键提示 + 返回 */}
       <div className="flex items-start justify-between">
         <button
           type="button"
@@ -39,12 +39,15 @@ export function ExperimentHUD({
         >
           EXP-{experiment.exp} · {experiment.title}
         </button>
-        <Link
-          href="/lab"
-          className="pointer-events-auto text-white/60 underline-offset-4 transition-colors duration-200 hover:text-white hover:underline focus-visible:text-white"
-        >
-          ◂ {t("lab.back", locale)}
-        </Link>
+        <div className="flex items-start gap-4">
+          <span className="text-white/40">m · Esc</span>
+          <Link
+            href="/lab"
+            className="pointer-events-auto text-white/60 underline-offset-4 transition-colors duration-200 hover:text-white hover:underline focus-visible:text-white"
+          >
+            ◂ {t("lab.back", locale)}
+          </Link>
+        </div>
       </div>
 
       {/* 四栏记录面板(§DESIGN 5):方法与器材必须可复查——不许假。 */}
@@ -70,9 +73,6 @@ export function ExperimentHUD({
           </dl>
         </div>
       )}
-
-      {/* 底部快捷键提示(Esc 返回);m 静音提示由实验本体负责。 */}
-      <div className="mt-auto self-end text-white/40">Esc</div>
     </div>
   );
 }
