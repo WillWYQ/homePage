@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="breathing field">
+  <rect width="800" height="450" fill="#000"/>
+  <defs>
+    <filter id="b" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+  <g filter="url(#b)" fill="none" stroke-linecap="round">
+    <path d="M0 225 C 100 180, 200 270, 300 225 S 500 180, 600 225 S 760 270, 800 225" stroke="#22c55e" stroke-width="30" opacity="0.5"/>
+    <path d="M0 235 C 120 300, 240 170, 360 235 S 600 300, 800 235" stroke="#4ade80" stroke-width="24" opacity="0.35"/>
+    <path d="M0 215 C 140 160, 280 280, 420 215 S 680 160, 800 215" stroke="#16a34a" stroke-width="26" opacity="0.3"/>
+  </g>
+</svg>

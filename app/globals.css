@@ -215,3 +215,22 @@ body {
     animation: none;
   }
 }
+
+/* /lab 索引签名:Focus Cards——hover 聚焦一张、其余暗化(§DESIGN 10.1)。
+   两条规则同权重,后者覆盖前者:被悬停/聚焦的卡恢复全亮。微交互层 ≤200ms。 */
+.focus-cards:hover .focus-card,
+.focus-cards:focus-within .focus-card {
+  opacity: 0.35;
+}
+.focus-cards .focus-card:hover,
+.focus-cards .focus-card:focus-within {
+  opacity: 1;
+}
+.focus-card {
+  transition: opacity 200ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .focus-card {
+    transition: none;
+  }
+}
