@@ -77,6 +77,15 @@ const STRINGS = {
   "about.shelves": { canonical: "shelves", zh: "收藏架", en: "shelves" },
   "about.annotation": { canonical: "本人批注", zh: "本人批注", en: "resident's note" },
 
+  // /lab 实验区(§DESIGN 5)。相位词 inhale/hold/exhale 是仪表读数,不进字典(§7.1)。
+  "lab.back": { canonical: "lab", zh: "实验区", en: "lab" },
+  "lab.record.question": { canonical: "question", zh: "问题", en: "question" },
+  "lab.record.method": { canonical: "method", zh: "方法", en: "method" },
+  "lab.record.observation": { canonical: "observation", zh: "观察", en: "observation" },
+  "lab.record.instruments": { canonical: "instruments", zh: "器材", en: "instruments" },
+  "lab.status.ongoing": { canonical: "ongoing", zh: "进行中", en: "ongoing" },
+  "lab.status.archived": { canonical: "archived", zh: "已归档", en: "archived" },
+
   // 404 标本架(§DESIGN 5)
   "notFound.stamp": {
     canonical: "SPECIMEN MISSING",

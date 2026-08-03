@@ -199,6 +199,63 @@ export function getAbout(): AboutContent | null {
   };
 }
 
+// ——————————————— /lab 实验区 ———————————————
+// 元数据与记录面板文字全住 content/lab/<slug>/index.md(§DESIGN 5)。
+// 读不到/字段缺 title 或 question 的单元直接忽略——宁缺毋滥(红线 3)。
+
+export type LabStatus = "ongoing" | "archived";
+
+export type LabExperiment = {
+  slug: string;
+  exp: string;
+  title: string;
+  question: string;
+  status: LabStatus;
+  method: string;
+  observation: string;
+  instruments: string[];
+  poster: string | null;
+};
+
+function toLabExperiment(slug: string, data: Record<string, unknown>): LabExperiment | null {
+  if (typeof data.title !== "string" || typeof data.question !== "string") return null;
+  return {
+    slug,
+    exp: typeof data.exp === "string" ? data.exp : "",
+    title: data.title,
+    question: data.question,
+    status: data.status === "archived" ? "archived" : "ongoing",
+    method: typeof data.method === "string" ? data.method : "",
+    observation: typeof data.observation === "string" ? data.observation : "",
+    instruments: toStringList(data.instruments),
+    poster: typeof data.poster === "string" ? data.poster : null,
+  };
+}
+
+export function getLabExperiments(): LabExperiment[] {
+  const dir = path.join(CONTENT_DIR, "lab");
+  let entries: string[];
+  try {
+    entries = fs.readdirSync(dir);
+  } catch {
+    return [];
+  }
+  const list: LabExperiment[] = [];
+  for (const name of entries.sort()) {
+    const unit = readUnit("lab", name);
+    if (!unit) continue;
+    const exp = toLabExperiment(name, unit.data);
+    if (exp) list.push(exp);
+  }
+  return list;
+}
+
+export function getLabExperiment(slug: string): LabExperiment | null {
+  const unit = readUnit("lab", slug);
+  if (!unit) return null;
+  return toLabExperiment(slug, unit.data);
+}
+
 // ————————————— 走廊的构建期取数(HOME-DESIGN §4.3 / §7) —————————————
 
 /** 最新一条记录(note / REM / IR / roll),构建期注入;相对时间由客户端按 nights 换算。 */
@@ -228,7 +285,12 @@ export function getRoomStatuses(): RoomStatuses {
   const about = getAbout();
   return {
     now: now?.updated ? { updatedAt: now.updated } : null,
-    lab: null,
+    lab: (() => {
+      const exps = getLabExperiments();
+      return exps.length
+        ? { experiments: exps.length, ongoing: exps.filter((e) => e.status === "ongoing").length }
+        : null;
+    })(),
     notes: null,
     photos: null,
     about: about ? { resident: true } : null,
