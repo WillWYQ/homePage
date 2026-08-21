@@ -1,4 +1,7 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any, prefer-const --
+   vendored from Aceternity UI (docs/COMPONENT-SOURCES.md), kept as-is;
+   not hand-editing a tuned canvas particle system for lint style. */
 import { cn } from "@/lib/utils";
 import React, { useEffect, useRef } from "react";
 import { createNoise3D } from "simplex-noise";

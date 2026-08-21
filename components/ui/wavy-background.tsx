@@ -1,4 +1,9 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any, no-var, react-hooks/set-state-in-effect --
+   vendored from Aceternity UI (docs/COMPONENT-SOURCES.md), kept as-is;
+   not hand-editing a tuned canvas effect for lint style. The setState-in-effect
+   here is a one-time Safari sniff on mount — same legitimate "browser-only API
+   read" exception as components/corridor/corridor.tsx. */
 import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { createNoise3D } from "simplex-noise";

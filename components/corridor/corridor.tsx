@@ -46,6 +46,9 @@ export function Corridor({
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
+    // 必须等 mount 后才能读 sessionStorage/matchMedia(避免水合不匹配,见上方
+    // 注释)——React 团队认可的"读浏览器专属 API"例外场景,不能挪到渲染期或懒初始化。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIntro(!seen && !reducedMotion ? "playing" : "gone");
   }, []);
 

@@ -1,4 +1,7 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/refs --
+   vendored from Aceternity UI (docs/COMPONENT-SOURCES.md), kept as-is;
+   not hand-editing the reveal-animation timing logic for lint style. */
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
 import { cn } from "@/lib/utils";

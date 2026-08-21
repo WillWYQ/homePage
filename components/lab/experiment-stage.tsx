@@ -6,10 +6,14 @@
 import { experimentComponent } from "@/lib/experiments";
 
 export function ExperimentStage({ slug }: { slug: string }) {
+  // experimentComponent looks up a stable reference from a module-level
+  // registry (lib/experiments.ts); it never defines a new component, so the
+  // identity is stable across renders even though the lookup runs at render time.
   const Experiment = experimentComponent(slug);
   if (!Experiment) return null;
   return (
     <div className="absolute inset-0">
+      {/* eslint-disable-next-line react-hooks/static-components -- see above */}
       <Experiment />
     </div>
   );

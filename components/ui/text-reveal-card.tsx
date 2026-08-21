@@ -1,4 +1,7 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/purity --
+   vendored from Aceternity UI (docs/COMPONENT-SOURCES.md), kept as-is;
+   not hand-editing decorative star-field randomness for lint style. */
 import React, { useEffect, useRef, useState, memo } from "react";
 import { motion } from "motion/react";
 import { twMerge } from "tailwind-merge";

@@ -31,6 +31,9 @@ export function useNightBand() {
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    // 必须等 mount 后才能读真实时间(SSR 期 now 为 null,避免水合不匹配,见上方
+    // 注释)——React 团队认可的"读浏览器专属 API"例外场景。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(new Date());
     let timer: number;
     const schedule = () => {

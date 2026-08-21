@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Git worktree checkouts (gitignored, but not excluded from lint's own
+    // file walk by default) — each is a full repo copy including its own
+    // .next/out build output, so linting picks up duplicate/build-artifact
+    // errors that have nothing to do with the primary tree.
+    ".claude/worktrees/**",
   ]),
 ]);
 

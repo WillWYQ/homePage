@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useRef } from "react";
+import { useState } from "react";
 
 // 仪表读数(HOME-DESIGN §4.3):左上角一行 mono,墙上的钟 + 门房的登记簿。
 // 永不做成列表;门缝读数(peek)来临时整行交叉淡入(≤150ms),移开即回到时钟。
@@ -20,9 +20,12 @@ export function CorridorReadout({
   /** 门缝读数;null = 未悬停或该房间无数据(时钟继续走) */
   peekLine: string | null;
 }) {
-  // 淡出过程中保留最后一次的门缝文字,避免尾帧闪空
-  const lastPeekRef = useRef<string | null>(null);
-  if (peekLine) lastPeekRef.current = peekLine;
+  // 淡出过程中保留最后一次的门缝文字,避免尾帧闪空。
+  // 用 state 而非 ref:渲染期读写 ref 是不安全的(react-hooks/refs);
+  // 这里改用 React 官方"渲染期按 prop 变化调整 state"的写法,同一提交内完成,
+  // 视觉上与原 ref 方案完全等价,不会多闪一帧。
+  const [lastPeek, setLastPeek] = useState<string | null>(null);
+  if (peekLine && peekLine !== lastPeek) setLastPeek(peekLine);
 
   if (!clockLine) return null;
 
@@ -45,7 +48,7 @@ export function CorridorReadout({
             peekLine ? "opacity-100" : "opacity-0"
           )}
         >
-          {lastPeekRef.current}
+          {lastPeek}
         </p>
       </div>
     </div>
