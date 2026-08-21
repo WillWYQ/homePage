@@ -14,9 +14,14 @@ const TonightTides = dynamic(() => import("@/components/experiments/tonight-tide
   ssr: false,
 });
 
+const DreamDecay = dynamic(() => import("@/components/experiments/dream-decay"), {
+  ssr: false,
+});
+
 const REGISTRY: Record<string, ComponentType> = {
   "001-breathing-field": BreathingField,
   "002-tonight-tides": TonightTides,
+  "003-dream-decay": DreamDecay,
 };
 
 export function experimentComponent(slug: string): ComponentType | null {
