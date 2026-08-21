@@ -12,8 +12,13 @@
 // 衰减两段式:intact → scrambled → gone。同一个词第一次被选中只变乱码,
 // 第二次被选中才真的消失——所以第一次复述只会让文字变模糊,不会立刻丢
 // 任何一个词,更接近真实遗忘的渐进感。
+//
+// 视图状态用一个判别联合 + 单次 setState(而不是三个并行 useState),
+// 一是让 eslint react-hooks/set-state-in-effect 满意(挂载 effect 里只调
+// 一次 setView),二是让 TypeScript 在 phase==="written" 分支自动收窄出
+// record 一定存在,不再需要 `record &&` 这种本该在类型层面就不可能的判断。
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const STORAGE_KEY = "sl.exp003.dream";
 const DECAY_FRACTION = 0.15; // 每次复述约 15% 的原词(SPEC §3)
@@ -35,6 +40,11 @@ type StoredRecord = {
   decayCount: number;
   anchorIndex: number; // 首句锚点词,永不进入衰减候选
 };
+
+type ViewState =
+  | { phase: "loading" }
+  | { phase: "empty" }
+  | { phase: "written"; record: StoredRecord; changedIndices: Set<number> };
 
 function tokenize(text: string): Token[] {
   const tokens: Token[] = [];
@@ -166,18 +176,27 @@ function DecayWordSpan({
 }
 
 export default function DreamDecay() {
-  const [phase, setPhase] = useState<"loading" | "empty" | "written">("loading");
-  const [record, setRecord] = useState<StoredRecord | null>(null);
-  const [changedIndices, setChangedIndices] = useState<Set<number>>(new Set());
+  const [view, setView] = useState<ViewState>({ phase: "loading" });
   const [draft, setDraft] = useState("");
 
-  // 挂载 = 一次复述(如果已有记录)。ssr:false 下这是首次真正执行的地方,
-  // 避免"先闪一下写作提示、再闪成已有的梦"这种状态跳变(ssr:false 组件
-  // 本就不参与服务端渲染,这里纯粹是体验上的先后顺序问题)。
+  // 挂载 = 一次复述(如果已有记录)。ref 守卫是必须的,不是防御性冗余:
+  // next.config.ts 没有关闭 reactStrictMode,Next 16 默认开着它,开发环境
+  // 会把这个 effect 的 mount → cleanup → mount 各跑一遍来检测副作用不纯。
+  // 这个 effect 有真实的外部副作用(读写 localStorage、触发一次真实衰减),
+  // 若被那套复检机制不小心跑两次,dev 模式下每刷新一次页面就会真的衰减
+  // 两次——这正是"不许假"最容易在开发阶段悄悄破功的地方。守卫让 StrictMode
+  // 的第二次调用直接跳过,只有第一次真正生效。
+  const hasSyncedRef = useRef(false);
   useEffect(() => {
+    if (hasSyncedRef.current) return;
+    hasSyncedRef.current = true;
+
+    // 挂载时读一次 localStorage(真实外部系统)决定初始视图;ssr:false 组件
+    // 不参与服务端渲染,没有更早的时机能拿到这份数据。
     const existing = loadRecord();
     if (!existing) {
-      setPhase("empty");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setView({ phase: "empty" });
       return;
     }
     const decayed = decayOnce(existing.words, existing.anchorIndex);
@@ -191,9 +210,7 @@ export default function DreamDecay() {
       decayCount: existing.decayCount + 1,
     };
     saveRecord(next);
-    setRecord(next);
-    setChangedIndices(changed);
-    setPhase("written");
+    setView({ phase: "written", record: next, changedIndices: changed });
   }, []);
 
   const submit = () => {
@@ -207,16 +224,14 @@ export default function DreamDecay() {
       anchorIndex: firstWordIndex(tokens),
     };
     saveRecord(next);
-    setRecord(next);
-    setChangedIndices(new Set());
-    setPhase("written");
+    setView({ phase: "written", record: next, changedIndices: new Set() });
   };
 
-  if (phase === "loading") return null;
+  if (view.phase === "loading") return null;
 
   return (
     <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black p-8">
-      {phase === "empty" && (
+      {view.phase === "empty" && (
         <div className="w-full max-w-xl">
           <textarea
             value={draft}
@@ -238,19 +253,19 @@ export default function DreamDecay() {
         </div>
       )}
 
-      {phase === "written" && record && (
+      {view.phase === "written" && (
         <div className="w-full max-w-xl">
           <p className="font-sans text-lg leading-relaxed">
-            {record.words.map((w, i) =>
+            {view.record.words.map((w, i) =>
               w.isWord ? (
-                <DecayWordSpan key={i} word={w} justChanged={changedIndices.has(i)} />
+                <DecayWordSpan key={i} word={w} justChanged={view.changedIndices.has(i)} />
               ) : (
                 <span key={i}>{w.text}</span>
               ),
             )}
           </p>
           <p className="mt-6 font-mono text-xs text-white/40">
-            reread {record.decayCount} time{record.decayCount === 1 ? "" : "s"}
+            reread {view.record.decayCount} time{view.record.decayCount === 1 ? "" : "s"}
           </p>
         </div>
       )}
