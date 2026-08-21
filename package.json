@@ -8,7 +8,8 @@
     "build:willsleep": "NEXT_PUBLIC_SITE_NAME=willsleep next build",
     "build:yueqiao": "NEXT_PUBLIC_SITE_NAME=yueqiao next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@phosphor-icons/react": "latest",
