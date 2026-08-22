@@ -55,7 +55,11 @@ content/photos/
 - 有 `index.md`:frontmatter 的 `photos` 数组如果存在,数组顺序即渲染顺序(覆盖字典序);未在数组里出现的图片文件仍会被扫描进 manifest,但排在数组内条目之后(字典序),避免"忘记在 frontmatter 里登记"导致图片彻底消失(呼应"宁缺毋滥"不等于"悄悄丢数据")。
 - 图片二进制 gitignore,`index.md`/`index.zh.md`/`index.en.md` 入库(DESIGN §4 约定 4)。
 
-## 3. `photoSet` frontmatter schema(`lib/content-schema.ts`)
+## 3. 两个 schema:`photoSet` frontmatter 与 `image-manifest.json` 条目
+
+这两个 schema 服务不同的读取路径,不要混用:§3.1 校验的是 `content/photos/<roll>/index.md` 的 frontmatter(人写的);§3.2 是 `sync-images.mjs` 生成、`getPhotoRolls()` 读取的 `content/image-manifest.json` 条目(机器写的)。后续 §4/§6 引用"manifest 条目"一律指向 §3.2,引用"frontmatter"一律指向 §3.1。
+
+### 3.1 `photoSet` frontmatter schema(`lib/content-schema.ts`)
 
 ```ts
 import { z } from "zod";
@@ -84,6 +88,32 @@ export type PhotoSetFrontmatter = z.infer<typeof photoSetSchema>;
 
 这是本仓库第一个 `lib/content-schema.ts` 文件与第一个 zod 依赖;`now`/`about`/`lab` 现有的 ad hoc 手写校验(`lib/content.ts` 里那些 `typeof x === "string" ? x : ...`)本次不回头重构——DESIGN §4 说全量 schema(note/dream/incident/photo-set/now/about/lab)最终都要搬进这个文件,但那是随期4 一起做的事,本次只加 `photoSet` 一个。
 
+### 3.2 `image-manifest.json` 条目 schema
+
+`content/image-manifest.json` 是一个以 `source`(`content/` 内相对路径)为 key 的对象,由 `scripts/sync-images.mjs` 独占写入(§4.6),`lib/content.ts` 只读:
+
+```ts
+export type ManifestExif = {
+  camera?: string; lens?: string; iso?: number;
+  aperture?: number; shutter?: string; focal?: number;
+};
+
+export type ManifestEntry = {
+  id: string;                                            // 内容哈希(§4.3)
+  roll: string;                                          // 所属文件夹名
+  takenAt: string | null;                                // ISO,回落链见 §4.5
+  width: number; height: number;                         // 原图尺寸
+  blurhash: string | null;                                // 原始 blurhash 字符串
+  blurDataUrl: string | null;                             // 预渲染的小尺寸 PNG data URL,见 §4.4
+  exif: ManifestExif | null;
+  sizes: Partial<Record<"480" | "960" | "1600" | "2400", string>>; // 见 §4.3 的"全跳过则不写条目"规则,这里不会是空对象
+};
+
+export type ImageManifest = Record<string, ManifestEntry>; // key = "photos/<roll>/<file>"
+```
+
+`blurhash` 与 `blurDataUrl` 两个字段都保留:前者是 DESIGN §6 原文明确要求的字段(留作以后可能的客户端重新解码用途),后者是本文档新增的、`/photos` 页面实际渲染时用的成品(§4.4 说明生成方式,§6.1 说明为什么不在 `lib/content.ts` 里现算)。
+
 ## 4. `scripts/sync-images.mjs` 流水线
 
 ### 4.1 CLI 与环境变量
@@ -94,7 +124,7 @@ pnpm sync:images [--dry-run] [roll-slug ...]
 
 - 不带位置参数:扫描 `content/photos/` 下全部子文件夹。
 - 带位置参数:只处理指定的 roll(方便调试单个文件夹,不必每次全量重跑——虽然幂等让全量重跑本身很便宜,但调试时想看单个 roll 的详细日志)。
-- `--dry-run`:跑完 iCloud 检查 / resize / blurhash / EXIF 全部阶段,但跳过 R2 上传与 manifest 写入,改为把"每张图会产出的 manifest 条目"打印到 stdout。**没有 R2 凭据时,`--dry-run` 是唯一能跑的模式**——见 §4.6。
+- `--dry-run`:跑完 iCloud 检查 / resize / blurhash / EXIF 全部阶段,但跳过 R2 上传与 manifest 写入。**幂等信号的来源:** dry-run 会只读地打开现有 `content/image-manifest.json`(不存在则视为空),对每个候选文件计算内容哈希(§4.3)后与 manifest 里同 `source` key 的 `id` 比对——哈希相同则打印 `= <path>: already in manifest, would skip`,不同或不存在则打印 `+ <path>: would process & upload`。因为 dry-run 从不写任何文件,只要两次运行之间输入不变,两次的 `would skip`/`would process` 分类逐行相同——这就是不需要真实 R2 凭据也能验证的幂等信号(§10 用这条断言)。**没有 R2 凭据时,`--dry-run` 是唯一能跑的模式**——见 §4.6。
 
 环境变量(全部本机 `.env.local`,不进 CI,`.env*` 已被 `.gitignore` 覆盖):
 
@@ -124,12 +154,18 @@ pnpm sync:images [--dry-run] [roll-slug ...]
 
 - 尺寸阶梯沿用 DESIGN §6 示例:`[480, 960, 1600, 2400]`,webp,quality 82。
 - **不放大:** 若原图宽度小于某档,跳过该档(`sizes` 里没有这个 key),不做插值放大出虚假清晰度。
+- **边界情况——原图窄于 480px(全部四档都被跳过):** 不写这张图的 manifest 条目(等同"从未同步"),打印一行警告 `⚠ skipped <path>: narrower than smallest tier (480px), nothing to serve`。真实照片(手机/相机原图)几乎不会触发,但占位图测试容易撞上;这样处理让 §3.2 的 `sizes` 永远不必是空对象 `{}`,前端(§6.3/§6.4)也就不需要单独区分"空对象"和"完全不在 manifest 里"这两种状态——统一按"不在 manifest 里"处理即可。
 - **文件名:** 内容哈希(sha256 前 10 位 hex)+ 宽度,如 `a1b2c3d4e5-960.webp`,天然幂等(同内容永远同名,重跑时对已存在的 key 跳过上传,见 §4.6)。
 - `id` 字段 = 该内容哈希(不含宽度后缀部分),同一原图的四个尺寸共享同一个 `id`。
 
-### 4.4 blurhash
+### 4.4 blurhash 与 `blurDataUrl`
 
-用 `blurhash` 包,从原图缩到窄边约 32px 的原始像素数据编码;失败(极少数格式不支持)时 `blurhash` 字段为 `null`,不是让整个脚本挂掉。
+两步,都在 sync 脚本里做,只做一次(不是每次 `next build`/`next dev` 重算):
+
+1. 用 `blurhash` 包的 `encode()`,从原图缩到窄边约 32px 的原始像素数据编码出 `blurhash` 字符串。
+2. 立刻用 `blurhash` 包的 `decode()` 把这个字符串解回一个固定小尺寸(如 32×32)的原始 RGBA 像素 buffer,再用已经引入的 `sharp`(`sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBuffer()`)把这个 buffer 编码成一张真正的 PNG,base64 后拼成 `data:image/png;base64,...` 存进 `blurDataUrl`。**不额外引入 canvas 依赖**——`sharp` 本来就在依赖列表里,原始像素转 PNG 是它的标准能力。
+
+失败(极少数格式不支持编码)时 `blurhash`/`blurDataUrl` 两个字段都为 `null`,不是让整个脚本挂掉。`lib/content.ts` 只是把 manifest 里已经算好的 `blurDataUrl` 原样传给 `PhotoFrame`(§6.1 说明为什么不在读取层重算)。
 
 ### 4.5 EXIF 提取(`exifr`)与 `takenAt` 回落
 
@@ -137,7 +173,7 @@ pnpm sync:images [--dry-run] [roll-slug ...]
 
 - 能解出 EXIF:`{ camera, lens, iso, aperture, shutter, focal }`,各字段本身也允许为 `undefined`(不是每张图都有完整字段)。
 - 解不出(占位图 / 没有 EXIF 的截图):`exif` 字段整体为 `null`,不是塞一个全 `undefined` 的空壳对象。
-- `takenAt` 回落链:EXIF `DateTimeOriginal` → 该 roll `index.md` frontmatter 的 `date`(§3 schema)→ 文件系统 mtime → `null`。三层都拿不到时,前端不渲染日期,不是显示"1970-01-01"这种假数据。
+- `takenAt` 回落链:EXIF `DateTimeOriginal` → 该 roll `index.md` frontmatter 的 `date`(§3.1 schema)→ 文件系统 mtime → `null`。三层都拿不到时,前端不渲染日期,不是显示"1970-01-01"这种假数据。
 
 ### 4.6 R2 上传与凭据缺失时的行为
 
@@ -156,7 +192,7 @@ pnpm sync:images [--dry-run] [roll-slug ...]
 
 1. `HeadObjectCommand` 检查该 key(内容哈希+宽度)是否已存在于 bucket——存在则跳过,这是幂等的实际实现方式(不是"本地记录一份哈希清单",是直接问 R2 权威状态,重跑脚本时哪怕本地 manifest 丢了也不会重复上传)。
 2. 不存在则 `PutObjectCommand` 上传,`CacheControl: "public, max-age=31536000, immutable"`(DESIGN §6 原文要求)。
-3. 全部四档尺寸都处理完后,合并写入 `content/image-manifest.json`(§3 结构,以 `source` 相对路径为 key)——**是合并不是覆盖**:已存在于 manifest 但这次没有被扫描到的条目(比如某个 roll 文件夹被删掉了)保留不动,脚本不负责清理陈旧条目(避免因为一次跑漏了某个 iCloud 文件就把 manifest 里的历史记录冲掉)。
+3. 全部四档尺寸都处理完后,合并写入 `content/image-manifest.json`(§3.2 结构,以 `source` 相对路径为 key)——**是合并不是覆盖**:已存在于 manifest 但这次没有被扫描到的条目(比如某个 roll 文件夹被删掉了)保留不动,脚本不负责清理陈旧条目(避免因为一次跑漏了某个 iCloud 文件就把 manifest 里的历史记录冲掉)。
 
 ### 4.7 幂等性(验收口径)
 
@@ -179,7 +215,8 @@ pnpm sync:images [--dry-run] [roll-slug ...]
 
 - `getPhotoRolls()` 按日期降序排列(无日期的排最后,与站内其他列表"新的在前"的一致习惯对齐,虽然 DESIGN 没有为 /photos 明写这条,但 `/notes` 规格与既有站点习惯都是如此,不另立新规则)。
 - 瀑布流:CSS 多栏(`columns-2 md:columns-3 gap-2`,每张图 `break-inside-avoid`),不引入 masonry/justified 布局库——DESIGN §5 已经为图片加载方式定了"少一层抽象"的调子(`<img srcset>` 优于自定义 loader),这里延续同一判断。
-- 每张图 `<img>` 用 `srcset` 拼出 `sizes` 里实际存在的档位(§4.3 提到不放大、可能缺高档),`sizes` 属性给出响应式提示;`blurhash` 解码成一张纯 CSS `background` 占位(用现成的 `blurhash` 包的 `decode` 函数在客户端画一个极小 canvas,或者构建期直接生成 data URL——选**构建期生成 data URL**,避免客户端多一次 canvas 解码开销,且是纯函数容易测试)。
+- 每张图 `<img>` 用 `srcset` 拼出 `sizes` 里实际存在的档位(§4.3 提到不放大、可能缺高档),`sizes` 属性给出响应式提示;占位用 `PhotoFrame.blurDataUrl` 直接当 `background-image`——这个值是 §4.4 在 sync 脚本里预先算好、存进 manifest 的成品 PNG data URL,页面渲染时不再解码 blurhash、不需要客户端 JS 或运行时 canvas,`lib/content.ts` 只是透传。
+
 - 按 roll 分组展示:每组一个小标题(roll 的 `title` 或 slug)+ 该组的瀑布流子区块。
 
 ### 6.2 灯箱
@@ -203,7 +240,7 @@ export type PhotoFrame = {
   sizes: Partial<Record<"480" | "960" | "1600" | "2400", string>> | null;
   width: number | null;
   height: number | null;
-  blurDataUrl: string | null; // 构建期由 blurhash 生成的 data URL,见 §6.1
+  blurDataUrl: string | null; // 从 manifest(§3.2)透传,由 sync 脚本预先生成,见 §4.4
   takenAt: string | null;
   exif: PhotoExif | null;
   caption?: string;
@@ -221,7 +258,25 @@ export function getPhotoRolls(): PhotoRoll[];
 export function getPhotoRoll(slug: string): PhotoRoll | null;
 ```
 
-`sizes` 为 `null`(该文件完全不在 manifest 里,即从未同步过)时的行为按 §6.4 环境分支处理,不在这里写死。
+`sizes` 为 `null`(该文件完全不在 manifest 里,即从未同步过,含 §4.3 的"窄于 480px"边界情况)时的行为按 §6.4 环境分支处理,不在这里写死。
+
+**`getPhotoRolls()` / `getPhotoRoll(slug)` 装配步骤**(`lib/content.ts` 里第一个需要"扫目录 + 外部文件 join"的函数,不同于该文件现有函数只读单个 `index.md`——因此在这里把步骤完整摊开,不留给实现阶段推断):
+
+```
+1. fs.readdirSync("content/photos") 拿到全部 roll 文件夹名(即 slug)
+2. 对每个 roll:
+   a. 若存在 index.md:gray-matter 读 frontmatter,photoSetSchema.safeParse 校验(失败见 §3.1),
+      取 title(缺省用 slug)、date、正文转 paragraphs(复用现有 toParagraphs())
+   b. 若不存在 index.md:title = slug,date = null,paragraphs = []
+   c. 确定该 roll 下的图片文件顺序:frontmatter 里 photos[] 数组按其顺序在前;
+      该文件夹里存在但没出现在 photos[] 里的图片文件按文件名字典序追加在后(§2 规则)
+   d. 对每个文件:用 `photos/<roll>/<file>` 去查 image-manifest.json(§3.2)
+      - 命中:按命中条目 + frontmatter 里该文件对应的 caption(若有)组出 PhotoFrame,sizes 为
+        manifest 里的真实 R2 URL
+      - 未命中:按 §6.4 环境分支处理(dev 走本地回落;production 整帧从 frames 剔除)
+3. 按 date 降序排列全部 roll(无 date 的排最后,§6.1)
+4. getPhotoRoll(slug) 是 getPhotoRolls() 按 slug 过滤后取一条,找不到返回 null
+```
 
 ### 6.4 dev 模式本地回落(DESIGN §4.6 既有约定的具体实现)
 
@@ -257,7 +312,7 @@ content/photos/**/*
 
 覆盖范围(对应 BUILD-LOG.md 期3 开工 prompt 里点名的"尤其是 manifest 生成与 frontmatter 校验逻辑"):
 
-- **`photoSetSchema`(§3):** 合法 frontmatter 通过;`photos[].file` 缺失/非图片扩展名/空字符串时 `safeParse` 失败且 `issues` 指向正确字段路径;`date` 非法日期字符串时失败;整个 frontmatter 为空对象时合法(纯图组允许没有任何字段)。
+- **`photoSetSchema`(§3.1):** 合法 frontmatter 通过;`photos[].file` 缺失/非图片扩展名/空字符串时 `safeParse` 失败且 `issues` 指向正确字段路径;`date` 非法日期字符串时失败;整个 frontmatter 为空对象时合法(纯图组允许没有任何字段)。
 - **`isDataless` / `waitForMaterialize`(§4.2):** 纯字符串匹配的 `isDataless(lsOutput)` 直接单测;`waitForMaterialize` 用可注入的假时钟 + 假 `checkFn`(不碰真实文件系统、不真的等 15 秒),验证"超时后返回 skipped 状态而不是抛异常或挂起"。
 - **manifest 条目构建(§4.3-4.5):** 给定 mock 的 sharp 输出(宽高、resize 结果)与 mock 的 exifr 输出,验证 `id` 是内容哈希、`sizes` 正确跳过小于原图的档位、`exif` 为 `null` 而非空对象、`takenAt` 回落链三层依次验证。
 - **R2 上传幂等(§4.6):** 注入 mock 的 S3 client(`HeadObjectCommand` 返回"已存在" vs "不存在"两种场景),验证已存在时不调用 `PutObjectCommand`,不存在时调用且参数(key/bucket/CacheControl)正确。
@@ -287,8 +342,8 @@ content/photos/**/*
 - [ ] `next dev` 下 `/photos` 能看到占位图的瀑布流与灯箱效果(走 §6.4 本地回落),灯箱键盘导航(`Esc`/`←`/`→`)与 EXIF 行的字段缺失省略均可交互验证
 - [ ] `pnpm build:willsleep` 通过,产物(`out/`)不含任何 `content/photos/` 下的图片二进制
 - [ ] `pnpm build:yueqiao` 通过,`/photos` 路由不出现在 yueqiao 产物里(双站门控,同现有房间模式)
-- [ ] 幂等性:连续跑两次 `pnpm sync:images --dry-run`,第二次 stdout 显示"待上传"为空(dry-run 模式下用等价的"会跳过"日志替代真实 `HeadObjectCommand` 判断,因为 dry-run 不接触真实 R2——具体断言方式留给实现阶段,原则是"体现幂等,不需要真凭据")
-- [ ] `content/image-manifest.json` 结构与 §3 一致,`lib/content.ts` 的 `getPhotoRolls()` 能正确解析(用真实跑过一遍 dry-run 产出的样例条目做人工核对)
+- [ ] 幂等性:对不变的输入连续跑两次 `pnpm sync:images --dry-run`,两次的 `would skip` / `would process` 分类逐行相同(§4.1 的内容哈希 vs. 现有 manifest 比对机制,不接触真实 R2 也能验证)
+- [ ] `content/image-manifest.json` 结构与 §3.2 一致,`lib/content.ts` 的 `getPhotoRolls()` 能正确解析(用真实跑过一遍 dry-run 产出的样例条目做人工核对)
 
 **明确不在本次验收范围内(见 §0/§1 的前提说明):** "第一卷照片上线"、`lib/rooms.ts` 里 `photos.open` 翻真——这两项等用户配好 R2 并放入真实素材后才能达成,不属于本次编码工作可以自行验证的东西。
 
@@ -298,3 +353,5 @@ content/photos/**/*
 
 - `DESIGN.md` §9 期3 完成标准:三条("第一卷照片上线;GitHub Pages 产物不含图片;脚本幂等可重跑")里,"GitHub Pages 产物不含图片"与"脚本幂等可重跑"本次可以打勾;"第一卷照片上线"暂不打勾,旁注一句说明原因(等用户配 R2 + 传真实素材)。
 - `BUILD-LOG.md` 期3 状态行:`spec`/`plan`/`build` 打勾,`merge` 视合并情况而定;备注栏说明"管线已交付,内容上线等用户完成 R2 配置"。
+- `DESIGN.md` §4"脚手架与校验"小节标题仍写着"(第 3 期随解析管线一起交付)"——这是 2026-08-22 期3/期4 对调前的残留(彼时 /notes 才是期3),对调时 §9 表格下方加了修订说明,但这一处小节标题漏改。顺手把它改成"(第 4 期随解析管线一起交付)",与 §9 表格保持一致——本次只交付其中 `photoSet` 一个 schema(§3.1),标题描述的仍是完整的脚手架+全量校验系统,归期4没有变。
+- `lib/content.ts` 文件头注释"通用解析管线、zod 校验...仍在第 3 期"同样是对调前的残留,一并改成"第 4 期"。
