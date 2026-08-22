@@ -20,7 +20,7 @@
 | 1 | 骨架 | ✅ | ✅ | ✅ | ✅ | on main |
 | 2 | /lab 实验区 | ✅ | ✅ | ✅ | 🟡 | EXP-001 已合并;EXP-002/003 已实现并完成本机验证(`tsc`/`eslint`/双站 `build` 均过,`pnpm dev` 走查通过,含一处 reduced-motion 修复),[PR #2](https://github.com/WillWYQ/homePage/pull/2) 待合并——DESIGN §9 期2 的完成标准已满足,仅差 merge 这一格 |
 | — | infra · CI/CD 完善 | ✅ | ✅ | ✅ | ✅ | 直接在 main 上做的,没走 worktree |
-| 3 | /photos 暗房 | ⬜ | ⬜ | ⬜ | ⬜ | 下一个该开工的 |
+| 3 | /photos 暗房 | ✅ | ✅ | ✅ | ⬜ | 管线与页面已实现并本机验证;R2 未配置、无真实素材,内容上线待用户完成 R2 配置后自行运行 `pnpm sync:images` |
 | — | /reel 卷带间 | ✅ | ⬜ | ⬜ | ⬜ | spec 已提交(`04c8096`);两处判断待确认,见下 |
 | 4 | /notes 档案室 | ⬜ | ⬜ | ⬜ | ⬜ | 排在 /photos 之后(round #4 决定) |
 | 5 | /zh /en 翻译版 | ⬜ | ⬜ | ⬜ | ⬜ | 建议其他房间稳定后再做 |

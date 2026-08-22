@@ -172,7 +172,7 @@ photos:
 5. **解析方式:** 构建时扫描 `content/`,gray-matter 读 frontmatter,unified/remark 编译 markdown;个别需要交互嵌入的文章可升级为 `.mdx`。没有 CMS、没有数据库,git 历史就是编辑历史。
 6. **dev 预览:** 先跑一次图片同步脚本(幂等,见 §6);manifest 里没有的图,dev 模式回落读本地文件。
 
-### 脚手架与校验(第 3 期随解析管线一起交付)
+### 脚手架与校验(第 4 期随解析管线一起交付)
 
 - **`pnpm new:note` / `new:dream` / `new:incident` / `new:roll` 脚手架脚本**(`scripts/new-content.mjs`):交互式问一个标题,自动建文件夹(生成规范的 slug 与日期前缀)、写入该类型的 frontmatter 模板;`new:dream` / `new:incident` 自动分配下一个 REM / IR 编号,`new:incident` 顺带生成 timeline / root cause / lessons 三段骨架。新内容永远从脚本起步,杜绝手写漏字段、slug 命名不一致。
 - **构建期 frontmatter 校验**(`lib/content-schema.ts`,zod):每种内容类型一个 schema(note / dream / incident / photo-set / now / about / lab)。解析管线读入任何 `index.md` 都先过校验,**字段错误直接让 `next build` 失败并指出文件与字段**,而不是页面上静默渲染出怪样。schema 即 §5 各房间 frontmatter 约定的唯一权威定义,脚手架模板也从它生成,两处不会漂移。
@@ -400,7 +400,7 @@ type Locale = 'canonical' | 'zh' | 'en'
 |---|---|---|
 | 1 骨架 | 导航、/now、/about、404、favicon、metadata、sitemap/robots、trailingSlash;页面组件签名自带 `locale` 参数(§7.2) | 双域名构建通过;yueqiao 构建不出新板块;红线自查通过 |
 | 2 实验区 | /lab 框架 + EXP-001~003(breathing field / tonight's tides / dream decay,§5) | 每件实验回答一个真问题并通过策展三问;记录面板含 question/method/observation/instruments;reduced-motion 降级可用 |
-| 3 暗房 | sync-images 脚本、R2 配置、/photos 页 | 第一卷照片上线;GitHub Pages 产物不含图片;脚本幂等可重跑 |
+| 3 暗房 | sync-images 脚本、R2 配置、/photos 页 | ~~第一卷照片上线~~(管线已交付,内容上线待用户配置 R2 + 传真实素材,见 BUILD-LOG);✅ GitHub Pages 产物不含图片;✅ 脚本幂等可重跑 |
 | 4 档案室 | 内容库解析管线(§4)、zod frontmatter 校验、new:note/new:dream/new:incident/new:roll 脚手架、/notes 列表与文章页、RSS | 发布第一篇 note、第一条 REM 与第一份 IR(均由脚手架创建);故意写坏一个字段,构建报错且指明文件;feed.xml 可订阅 |
 | 5 翻译版 | /zh /en 路由树、UI 字典、hreflang、页脚切换器(§7) | about + now 有 zh/en 全译;回落页有标注且 noindex;sitemap 只收真实翻译;任意页面三版互切不 404 |
 
