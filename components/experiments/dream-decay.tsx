@@ -149,25 +149,24 @@ function DecayWordSpan({
   word: DecayWord;
   justChanged: boolean;
 }) {
-  const [display, setDisplay] = useState(
-    justChanged ? word.text : word.state === "gone" ? "" : word.text,
-  );
+  // reduced-motion:衰减结果照常生效(SPEC §5),只是不演抖动过程——初始状态
+  // 直接是目标态,不起 setInterval。scrambled 的目标态本就是乱码(不是原文),
+  // 与下方 setInterval 收尾时的写法保持一致。算在 useState 初始化里(惰性初始值),
+  // 不放进 effect body,避免 react-hooks/set-state-in-effect 那类真实的级联渲染。
+  const [display, setDisplay] = useState(() => {
+    if (!justChanged) return word.state === "gone" ? "" : word.text;
+    if (prefersReducedMotion()) {
+      return word.state === "gone"
+        ? ""
+        : word.state === "scrambled"
+          ? scrambleFor(word.text)
+          : word.text;
+    }
+    return word.text;
+  });
 
   useEffect(() => {
-    if (!justChanged) return;
-    // reduced-motion:衰减结果照常生效(SPEC §5),只是不演抖动过程——
-    // 直接定格到目标态,不起 setInterval。scrambled 的目标态本就是乱码
-    // (不是原文),与下方 setInterval 收尾时的写法保持一致。
-    if (prefersReducedMotion()) {
-      setDisplay(
-        word.state === "gone"
-          ? ""
-          : word.state === "scrambled"
-            ? scrambleFor(word.text)
-            : word.text,
-      );
-      return;
-    }
+    if (!justChanged || prefersReducedMotion()) return;
     let frame = 0;
     const maxFrames = 8;
     const id = window.setInterval(() => {
