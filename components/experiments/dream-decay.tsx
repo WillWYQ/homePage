@@ -111,6 +111,10 @@ function decayOnce(
   return next;
 }
 
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 function scrambleFor(text: string): string {
   return Array.from(text)
     .map(() => SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)])
@@ -151,6 +155,19 @@ function DecayWordSpan({
 
   useEffect(() => {
     if (!justChanged) return;
+    // reduced-motion:衰减结果照常生效(SPEC §5),只是不演抖动过程——
+    // 直接定格到目标态,不起 setInterval。scrambled 的目标态本就是乱码
+    // (不是原文),与下方 setInterval 收尾时的写法保持一致。
+    if (prefersReducedMotion()) {
+      setDisplay(
+        word.state === "gone"
+          ? ""
+          : word.state === "scrambled"
+            ? scrambleFor(word.text)
+            : word.text,
+      );
+      return;
+    }
     let frame = 0;
     const maxFrames = 8;
     const id = window.setInterval(() => {
