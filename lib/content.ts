@@ -1,7 +1,7 @@
 // 内容库读取层(§DESIGN 4)。
 //
 // 第 1 期只做"最小读取":读 content/ 下固定路径的 index.md + gray-matter 取 frontmatter。
-// 通用解析管线、zod 校验、new:* 脚手架仍在第 3 期——那时只改本文件的实现,
+// 通用解析管线、zod 校验、new:* 脚手架仍在第 4 期——那时只改本文件的实现,
 // 类型与调用方不动。/now 与 /about 的内容全住 frontmatter(ABOUT §5 正文区留白),
 // 所以这一期不需要 remark。
 //
@@ -11,6 +11,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import sharp from "sharp";
+import { photoSetSchema } from "./content-schema";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 
@@ -295,4 +297,240 @@ export function getRoomStatuses(): RoomStatuses {
     photos: null,
     about: about ? { resident: true } : null,
   };
+}
+
+// ——————————————————————— /photos 暗房 ———————————————————————
+// 元数据校验走 photoSetSchema(§3.1);manifest 是机器写的产物(§3.2),这里只读。
+// getPhotoRolls/getPhotoRoll 是本文件第一对 async 函数——dev 回落(§6.4)需要
+// sharp(...).metadata() 现读本地图片尺寸,只有异步 API。
+
+export type PhotoExif = {
+  camera?: string;
+  lens?: string;
+  iso?: number;
+  aperture?: number;
+  shutter?: string;
+  focal?: number;
+};
+
+export type PhotoFrame = {
+  file: string;
+  sizes: Partial<Record<"480" | "960" | "1600" | "2400", string>> | null;
+  width: number | null;
+  height: number | null;
+  blurDataUrl: string | null;
+  takenAt: string | null;
+  exif: PhotoExif | null;
+  caption?: string;
+};
+
+export type PhotoRoll = {
+  slug: string;
+  title: string;
+  date: string | null;
+  paragraphs: string[];
+  frames: PhotoFrame[];
+};
+
+type ManifestEntry = {
+  id: string;
+  roll: string;
+  takenAt: string | null;
+  width: number;
+  height: number;
+  blurhash: string | null;
+  blurDataUrl: string | null;
+  exif: PhotoExif | null;
+  sizes: Partial<Record<"480" | "960" | "1600" | "2400", string>>;
+};
+type ImageManifest = Record<string, ManifestEntry>;
+
+const PHOTOS_DIR = path.join(CONTENT_DIR, "photos");
+const MANIFEST_PATH = path.join(CONTENT_DIR, "image-manifest.json");
+const DEV_LINK_PATH = path.join(process.cwd(), "public", "_dev-photos");
+const IMAGE_FILE_RE = /\.(jpe?g|png|webp|heic)$/i;
+
+function readManifestFile(manifestPath: string): ImageManifest {
+  try {
+    return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+/** 独立于 readUnit():readUnit() 固定读真实 CONTENT_DIR,这里要支持测试注入的 photosDir。 */
+function readPhotoUnit(
+  photosDir: string,
+  slug: string,
+): { data: Record<string, unknown>; body: string } | null {
+  const file = path.join(photosDir, slug, "index.md");
+  let raw: string;
+  try {
+    raw = fs.readFileSync(file, "utf8");
+  } catch {
+    return null;
+  }
+  const parsed = matter(raw);
+  return { data: parsed.data as Record<string, unknown>, body: parsed.content.trim() };
+}
+
+/** frontmatter photos[] 顺序在前,未登记的文件按字典序追加在后(§2)。 */
+function orderedFiles(
+  rollDir: string,
+  frontmatterPhotos: { file: string; caption?: string }[],
+): { file: string; caption?: string }[] {
+  let allFiles: string[];
+  try {
+    allFiles = fs.readdirSync(rollDir).filter((f) => IMAGE_FILE_RE.test(f));
+  } catch {
+    return [];
+  }
+  const listed = new Set(frontmatterPhotos.map((p) => p.file));
+  const rest = allFiles.filter((f) => !listed.has(f)).sort();
+  return [...frontmatterPhotos, ...rest.map((file) => ({ file }))];
+}
+
+const devFallbackLinksVerified = new Set<string>();
+
+/** 惰性创建一次符号链接;只读文件系统等失败场景静默忽略,退化为下一层的"生产行为"(§6.4)。 */
+function ensureDevFallbackLink(photosDir: string, devLinkPath: string): boolean {
+  if (devFallbackLinksVerified.has(devLinkPath)) return true;
+  try {
+    if (!fs.existsSync(devLinkPath)) {
+      fs.mkdirSync(path.dirname(devLinkPath), { recursive: true });
+      fs.symlinkSync(photosDir, devLinkPath, "dir");
+    }
+    devFallbackLinksVerified.add(devLinkPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function buildFrame(
+  roll: string,
+  file: string,
+  caption: string | undefined,
+  manifest: ImageManifest,
+  photosDir: string,
+  devLinkPath: string,
+): Promise<PhotoFrame | null> {
+  const source = `photos/${roll}/${file}`;
+  const entry = manifest[source];
+  if (entry) {
+    return {
+      file,
+      sizes: entry.sizes,
+      width: entry.width,
+      height: entry.height,
+      blurDataUrl: entry.blurDataUrl,
+      takenAt: entry.takenAt,
+      exif: entry.exif,
+      caption,
+    };
+  }
+
+  // manifest 里没有这张图:生产构建直接不渲染这一帧,不报错(§6.4,与 getRoomStatuses()
+  // 现有的"没数据就 null"是同一种"宁缺毋滥"处理)。
+  if (process.env.NODE_ENV === "production") return null;
+
+  // dev 模式本地回落(§6.4 / DESIGN §4.6)
+  const linked = ensureDevFallbackLink(photosDir, devLinkPath);
+  if (!linked) return null;
+
+  const absPath = path.join(photosDir, roll, file);
+  let width: number | null = null;
+  let height: number | null = null;
+  try {
+    const meta = await sharp(absPath).metadata();
+    width = meta.width ?? null;
+    height = meta.height ?? null;
+  } catch {
+    // 本地文件也读不到(占位图还没真的放进去):照样给一个可用的帧,只是没有尺寸信息
+  }
+  const devUrl = `/_dev-photos/${roll}/${file}`;
+  return {
+    file,
+    sizes: { "480": devUrl, "960": devUrl, "1600": devUrl, "2400": devUrl },
+    width,
+    height,
+    blurDataUrl: null,
+    takenAt: null,
+    exif: null,
+    caption,
+  };
+}
+
+export async function getPhotoRolls(opts?: {
+  photosDir?: string;
+  manifestPath?: string;
+  devLinkPath?: string;
+}): Promise<PhotoRoll[]> {
+  const photosDir = opts?.photosDir ?? PHOTOS_DIR;
+  const manifestPath = opts?.manifestPath ?? MANIFEST_PATH;
+  const devLinkPath = opts?.devLinkPath ?? DEV_LINK_PATH;
+  const manifest = readManifestFile(manifestPath);
+
+  let slugs: string[];
+  try {
+    slugs = fs
+      .readdirSync(photosDir)
+      .filter((name) => fs.statSync(path.join(photosDir, name)).isDirectory());
+  } catch {
+    return [];
+  }
+
+  const rolls: PhotoRoll[] = [];
+  for (const slug of slugs) {
+    const rollDir = path.join(photosDir, slug);
+    const unit = readPhotoUnit(photosDir, slug);
+
+    let title = slug;
+    let date: string | null = null;
+    let paragraphs: string[] = [];
+    let frontmatterPhotos: { file: string; caption?: string }[] = [];
+
+    if (unit) {
+      const parsed = photoSetSchema.safeParse(unit.data);
+      if (!parsed.success) {
+        const issues = parsed.error.issues
+          .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
+          .join("\n");
+        throw new Error(
+          `content/photos/${slug}/index.md frontmatter 校验失败:\n${issues}`,
+        );
+      }
+      if (parsed.data.title) title = parsed.data.title;
+      if (parsed.data.date) date = parsed.data.date.toISOString();
+      paragraphs = toParagraphs(unit.body);
+      frontmatterPhotos = parsed.data.photos ?? [];
+    }
+
+    const files = orderedFiles(rollDir, frontmatterPhotos);
+    const built = await Promise.all(
+      files.map(({ file, caption }) =>
+        buildFrame(slug, file, caption, manifest, photosDir, devLinkPath),
+      ),
+    );
+    const frames = built.filter((f): f is PhotoFrame => f !== null);
+
+    rolls.push({ slug, title, date, paragraphs, frames });
+  }
+
+  rolls.sort((a, b) => {
+    if (a.date && b.date) return b.date.localeCompare(a.date);
+    if (a.date) return -1;
+    if (b.date) return 1;
+    return a.slug.localeCompare(b.slug);
+  });
+
+  return rolls;
+}
+
+export async function getPhotoRoll(
+  slug: string,
+  opts?: { photosDir?: string; manifestPath?: string; devLinkPath?: string },
+): Promise<PhotoRoll | null> {
+  const rolls = await getPhotoRolls(opts);
+  return rolls.find((r) => r.slug === slug) ?? null;
 }
