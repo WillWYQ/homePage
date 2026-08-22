@@ -63,4 +63,30 @@ describe("waitForMaterialize", () => {
     expect(result.waitedMs).toBe(2000);
     nowSpy.mockRestore();
   });
+
+  it(
+    "bounds a hanging onDataless call so it cannot block progress",
+    async () => {
+      let calls = 0;
+      const checkFn = vi.fn().mockImplementation(async () => {
+        calls++;
+        return calls < 2; // dataless once, materialized on the second check
+      });
+      // Simulates a real `brctl download` wrapper that hangs forever
+      // (no default timeout on execFileAsync) — this must never block
+      // waitForMaterialize from making progress.
+      const onDataless = vi.fn().mockImplementation(() => new Promise(() => {}));
+      const sleepFn = vi.fn().mockResolvedValue(undefined); // resolves instantly
+      const result = await waitForMaterialize("/fake/path.jpg", {
+        checkFn,
+        sleepFn,
+        onDataless,
+        timeoutMs: 2000,
+        pollMs: 500,
+      });
+      expect(result.materialized).toBe(true);
+      expect(onDataless).toHaveBeenCalledTimes(1);
+    },
+    1000, // vitest test timeout: proves this resolves fast, not just "eventually"
+  );
 });
