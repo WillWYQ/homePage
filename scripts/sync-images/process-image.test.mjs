@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import sharp from "sharp";
-import { resizeTiers, SIZE_LADDER } from "./process-image.mjs";
+import { resizeTiers, buildBlur, SIZE_LADDER } from "./process-image.mjs";
 
 async function makeFixture(width, height) {
   return sharp({
@@ -34,5 +34,21 @@ describe("resizeTiers", () => {
     const buffer = await makeFixture(300, 200);
     const { tiers } = await resizeTiers(buffer);
     expect(tiers).toEqual([]);
+  });
+});
+
+describe("buildBlur", () => {
+  it("produces a blurhash string and a matching PNG data URL", async () => {
+    const buffer = await makeFixture(200, 150);
+    const { blurhash, blurDataUrl } = await buildBlur(buffer);
+    expect(typeof blurhash).toBe("string");
+    expect(blurhash.length).toBeGreaterThan(0);
+    expect(blurDataUrl).toMatch(/^data:image\/png;base64,/);
+  });
+
+  it("returns nulls instead of throwing on unusable input", async () => {
+    const { blurhash, blurDataUrl } = await buildBlur(Buffer.from("not an image"));
+    expect(blurhash).toBeNull();
+    expect(blurDataUrl).toBeNull();
   });
 });
