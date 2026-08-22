@@ -3,7 +3,7 @@
 > willsleep.dev · 2026-08-22 起维护
 > 记录分期实施的当前进度(spec → plan → build → merge 四步),以及每期的开工 prompt。
 > 状态定义见 [DESIGN.md](DESIGN.md) §9(分期总表)与 §3/§10.1(`/reel` 等未编号房间的路由与签名账本)——DESIGN.md 负责"是什么/为什么",这份文件负责"现在走到哪一步 + 下一步怎么开工"。
-> 可视化版本(同一批数据,styled off DESIGN.md 自己的视觉系统):[Sleep Lab Build Log](https://claude.ai/code/artifact/54f13327-e5f9-45c6-b8ab-4541ff31bc91)(Claude Artifact,私有链接)。**这份 Markdown 才是可 diff、进仓库的数据源;Artifact 是它的展示层,不是另一个独立源** —— 更新时两边一起改,不然又要重演这次刚修完的 DESIGN.md §9 分叉。
+> 可视化版本(同一批数据,styled off DESIGN.md 自己的视觉系统)有两份:仓库内 [BUILD-LOG.html](BUILD-LOG.html)(可直接双击在浏览器打开,不依赖任何链接)与托管的 [Sleep Lab Build Log](https://claude.ai/code/artifact/54f13327-e5f9-45c6-b8ab-4541ff31bc91)(Claude Artifact,私有链接,方便分享)。**这份 Markdown 才是可 diff、进仓库的数据源;两份 HTML 都只是它的展示层,不是另外的独立源** —— 三处更新时一起改,不然又要重演这次刚修完的 DESIGN.md §9 分叉。
 
 ## 怎么用这份文档
 
@@ -187,5 +187,5 @@ pnpm dev 走查 EXP-002(tonight's tides)与 EXP-003(dream decay)两个实验页,
 ## 关于这份文档
 
 - 四格含义:`spec` = 设计文稿已写并提交;`plan` = 任务级实施计划已写并提交;`build` = 代码已在隔离 worktree 里实现;`merge` = 已合并回 main。🟡 表示这一格里的内容不是铁板一块的一整块(比如期2 三个实验里有的合并了有的没有)。
-- 这份文件由 Claude 在 2026-08-22 创建并首次填写,数据核对自 `git log`、`docs/superpowers/{specs,plans}` 目录内容与 DESIGN.md §9 当时的内容(commit `a250c9e`)。
+- 这份文件由 Claude 在 2026-08-22 创建并首次填写,数据核对自 `git log`、`docs/superpowers/{specs,plans}` 目录内容与 DESIGN.md §9 当时的内容。`docs/BUILD-LOG.html` 随后同一天加入仓库,是这份文件的 HTML 渲染版(与托管的 Claude Artifact 内容一致)。
 - git push 是"上线"决定,不属于任何一条开工 prompt 里的常规步骤——每条 prompt 都写明了合并后要跟你确认,不要在没问过的情况下自己 push。
