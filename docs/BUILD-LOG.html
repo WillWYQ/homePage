@@ -295,7 +295,7 @@
         <div class="title-row"><span class="slug">/lab</span><span class="name">实验区</span></div>
         <p class="scope">实验框架 + <span class="hl" style="color:var(--fg-70)">EXP-001</span> breathing field —— 屏幕呼吸场,4-7-8 节律</p>
         <div class="ticks"><i class="tick on"></i><i class="tick on"></i><i class="tick on"></i><i class="tick"></i></div>
-        <div class="readout">EXP-001 merged 2026-08-21 · 期2 完成标准要求 EXP-001~003 都上,002/003 见下方分支</div>
+        <div class="readout">EXP-001 merged 2026-08-21 · EXP-002/003 已本机验证通过,<span class="hl">PR #2</span> 待合并,见下方分支</div>
       </div>
     </div>
 
@@ -336,9 +336,9 @@
 
           <!-- pending-merge hollow dot on trunk -->
           <circle cx="40" cy="176" r="6" class="dot-hollow"></circle>
-          <text x="58" y="180" class="lbl-dim">awaiting your local pnpm dev/build → merge</text>
+          <text x="58" y="180" class="lbl-dim">PR #2 open · awaiting review/merge</text>
         </svg>
-        <figcaption><span class="hl">EXP-002 / EXP-003</span> 已实现且 <span class="hl">tsc / eslint</span> 通过,坐在隔离 worktree 分支上;沙盒内无可用 pnpm/网络,合并前待你本机跑一遍 <span class="hl">pnpm dev</span> 走查与 <span class="hl">pnpm build</span></figcaption>
+        <figcaption><span class="hl">EXP-002 / EXP-003</span> 已实现,本机 <span class="hl">tsc</span>、双站 <span class="hl">build</span> 与 <span class="hl">pnpm dev</span> 走查（含 reduced-motion、StrictMode 衰减守卫）全部通过,已推送并开出 <span class="hl">PR #2</span>,等待 review 后合并</figcaption>
       </figure>
     </div>
 
