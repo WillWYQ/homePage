@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sleep Lab Build Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0a0f;
+    --panel: rgba(255,255,255,0.025);
+    --panel-border: rgba(255,255,255,0.08);
+    --panel-border-hover: rgba(255,255,255,0.16);
+    --fg: #ffffff;
+    --fg-70: rgba(255,255,255,0.70);
+    --fg-40: rgba(255,255,255,0.40);
+    --fg-30: rgba(255,255,255,0.30);
+    --fg-15: rgba(255,255,255,0.15);
+    --fg-10: rgba(255,255,255,0.10);
+    --accent: #22c55e;
+    --accent-dim: rgba(34,197,94,0.30);
+    --accent-glow: rgba(34,197,94,0.16);
+    --font-serif: 'Lora', Georgia, 'Songti SC', serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ background: var(--bg); }
+  body{
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg-70);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .grain{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    z-index: 1;
+  }
+
+  .page{
+    position: relative;
+    z-index: 2;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: clamp(40px, 9vw, 96px) 22px 72px;
+  }
+
+  .eyebrow{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-40);
+  }
+
+  h1{
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-style: normal;
+    font-size: clamp(30px, 6vw, 42px);
+    color: var(--fg);
+    margin: 0.32em 0 0.22em;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle{
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--fg-40);
+  }
+  .subtitle .hl{ color: var(--accent); }
+
+  /* legend */
+  .legend{
+    margin-top: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 16px;
+    border: 1px solid var(--panel-border);
+    border-radius: 3px;
+    background: var(--panel);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--fg-40);
+  }
+  .legend-item{ display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .legend-ticks{ display: inline-flex; align-items: center; gap: 9px; white-space: nowrap; }
+  .legend-ticks .ticks{ margin: 0; }
+  .legend-sep{ width: 1px; align-self: stretch; background: var(--fg-10); }
+
+  /* dots */
+  .dot{ display:inline-block; width: 11px; height: 11px; border-radius: 50%; flex: none; }
+  .dot.done{ background: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+  .dot.partial{ background: transparent; border: 2px solid var(--accent); }
+  .dot.pending{ background: transparent; border: 1.5px dashed var(--fg-15); }
+
+  /* roadmap spine */
+  .roadmap{ position: relative; margin-top: 52px; }
+  .roadmap::before{
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: var(--fg-10);
+  }
+
+  .node{
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    column-gap: 18px;
+    padding-bottom: 34px;
+  }
+  .rail{ display:flex; justify-content:center; padding-top: 22px; }
+
+  .card{
+    border: 1px solid var(--panel-border);
+    background: var(--panel);
+    border-radius: 4px;
+    padding: 18px 20px;
+    transition: border-color 0.2s ease-out;
+  }
+  .card:hover{ border-color: var(--panel-border-hover); }
+  @media (prefers-reduced-motion: reduce){ .card{ transition: none; } }
+
+  .kicker{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-40);
+    margin-bottom: 6px;
+  }
+
+  .title-row{ display:flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .slug{ font-family: var(--font-mono); font-size: 14.5px; color: var(--accent); }
+  .name{ font-family: var(--font-sans); font-weight: 600; font-size: 16px; color: var(--fg); }
+
+  .scope{
+    margin: 8px 0 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--fg-70);
+  }
+
+  .ticks{ display: flex; gap: 5px; margin-top: 14px; }
+  .tick{ width: 7px; height: 7px; border-radius: 1.5px; background: var(--fg-10); }
+  .tick.on{ background: var(--accent); }
+
+  .readout{
+    margin-top: 9px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--fg-40);
+  }
+  .readout .hl{ color: var(--accent); }
+
+  .annotation{
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--fg-40);
+  }
+  .annotation .hl{ color: var(--fg-70); }
+
+  /* branch figure */
+  .branch-block{
+    grid-column: 2 / 3;
+    margin: -10px 0 30px;
+  }
+  figure.branch-figure{ margin: 0; }
+  .branch-figure svg{
+    display:block;
+    width: 100%;
+    height: auto;
+    color: var(--fg-30);
+  }
+  .trunk-line{ stroke: var(--fg-15); stroke-width: 1.5; fill: none; }
+  .branch-line{ stroke: var(--fg-30); stroke-width: 1.5; fill: none; }
+  .branch-line.dashed{ stroke-dasharray: 4 5; }
+  .dot-fill{ fill: var(--accent); }
+  .dot-hollow{ fill: var(--bg); stroke: var(--fg-30); stroke-width: 1.5; stroke-dasharray: 3 3; }
+  .arrow-fill{ fill: var(--fg-30); }
+  .lbl{ font-family: var(--font-mono); font-size: 11px; fill: var(--fg-70); }
+  .lbl-dim{ font-family: var(--font-mono); font-size: 10px; fill: var(--fg-40); }
+  figcaption{
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--fg-40);
+  }
+  figcaption .hl{ color: var(--fg-70); }
+
+  /* side badge (infra, off the room spine) */
+  .side-badge{
+    grid-column: 2 / 3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    margin: -8px 0 30px;
+    padding: 12px 18px;
+    border: 1px dashed var(--fg-15);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-40);
+  }
+  .side-badge .badge-label{ color: var(--fg-70); }
+  .side-badge .ticks{ margin-top: 0; }
+
+  /* aside card */
+  .aside-card{
+    margin-top: 8px;
+    padding: 16px 20px;
+    border: 1px dashed var(--fg-15);
+    border-radius: 4px;
+  }
+  .aside-card .kicker{ margin-bottom: 6px; }
+  .aside-card .scope{ margin-top: 4px; }
+
+  footer.provenance{
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--fg-10);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-30);
+    line-height: 1.7;
+  }
+  footer.provenance .hl{ color: var(--accent); }
+
+  @media (max-width: 480px){
+    .node{ grid-template-columns: 20px 1fr; column-gap: 12px; }
+    .roadmap::before{ left: 9px; }
+    .rail{ padding-top: 18px; }
+    .branch-block, .side-badge{ margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">THE SLEEP LAB · BUILD LOG</div>
+    <h1>实现步骤图</h1>
+    <div class="subtitle">willsleep.dev · 分期实施与当前进度 · <span class="hl">2026-08-22</span></div>
+  </header>
+
+  <div class="legend">
+    <span class="legend-item"><i class="dot done"></i>完成</span>
+    <span class="legend-item"><i class="dot partial"></i>部分完成</span>
+    <span class="legend-item"><i class="dot pending"></i>未开始</span>
+    <span class="legend-sep"></span>
+    <span class="legend-ticks">四格进度 = <span class="ticks"><i class="tick on"></i><i class="tick on"></i><i class="tick"></i><i class="tick"></i></span> spec · plan · build · merge</span>
+  </div>
+
+  <div class="roadmap">
+
+    <!-- 期1 骨架 -->
+    <div class="node">
+      <div class="rail"><span class="dot done"></span></div>
+      <div class="card">
+        <div class="kicker">期 1</div>
+        <div class="title-row"><span class="name">骨架 Skeleton</span></div>
+        <p class="scope">走廊导航 · /now · /about · 404 · favicon / metadata / sitemap+robots · 页面组件签名预埋 locale 参数</p>
+        <div class="ticks"><i class="tick on"></i><i class="tick on"></i><i class="tick on"></i><i class="tick on"></i></div>
+        <div class="readout">done · on main</div>
+      </div>
+    </div>
+
+    <!-- 期2 /lab -->
+    <div class="node">
+      <div class="rail"><span class="dot partial"></span></div>
+      <div class="card">
+        <div class="kicker">期 2</div>
+        <div class="title-row"><span class="slug">/lab</span><span class="name">实验区</span></div>
+        <p class="scope">实验框架 + <span class="hl" style="color:var(--fg-70)">EXP-001</span> breathing field —— 屏幕呼吸场,4-7-8 节律</p>
+        <div class="ticks"><i class="tick on"></i><i class="tick on"></i><i class="tick on"></i><i class="tick"></i></div>
+        <div class="readout">EXP-001 merged 2026-08-21 · 期2 完成标准要求 EXP-001~003 都上,002/003 见下方分支</div>
+      </div>
+    </div>
+
+    <!-- branch figure: EXP-002/003 -->
+    <div class="branch-block">
+      <figure class="branch-figure">
+        <svg viewBox="0 0 600 210" role="img" aria-label="EXP-002 tonight's tides 与 EXP-003 dream decay 已在隔离分支 worktree-lab-exp002-exp003 实现，尚未合并回 main">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" class="arrow-fill"></path>
+            </marker>
+          </defs>
+
+          <!-- main trunk continuing through this section -->
+          <line x1="40" y1="6" x2="40" y2="204" class="trunk-line"></line>
+          <text x="40" y="20" text-anchor="middle" class="lbl-dim">main</text>
+
+          <!-- fork point off main -->
+          <circle cx="40" cy="40" r="5" class="dot-fill"></circle>
+
+          <!-- curve out to branch -->
+          <path d="M40,40 C 96,40 96,78 150,78" class="branch-line"></path>
+          <!-- branch parallel dashed line -->
+          <line x1="150" y1="78" x2="520" y2="78" class="branch-line dashed"></line>
+
+          <!-- EXP-002 -->
+          <circle cx="235" cy="78" r="5" class="dot-fill"></circle>
+          <text x="235" y="60" text-anchor="middle" class="lbl">EXP-002 · tonight's tides</text>
+
+          <!-- EXP-003 -->
+          <circle cx="415" cy="78" r="5" class="dot-fill"></circle>
+          <text x="415" y="60" text-anchor="middle" class="lbl">EXP-003 · dream decay</text>
+
+          <text x="335" y="100" text-anchor="middle" class="lbl-dim">worktree-lab-exp002-exp003</text>
+
+          <!-- dashed return toward trunk, not yet arrived -->
+          <path d="M520,78 C 566,78 566,150 500,150 L 56,168" class="branch-line dashed" marker-end="url(#arrow)"></path>
+
+          <!-- pending-merge hollow dot on trunk -->
+          <circle cx="40" cy="176" r="6" class="dot-hollow"></circle>
+          <text x="58" y="180" class="lbl-dim">awaiting your local pnpm dev/build → merge</text>
+        </svg>
+        <figcaption><span class="hl">EXP-002 / EXP-003</span> 已实现且 <span class="hl">tsc / eslint</span> 通过,坐在隔离 worktree 分支上;沙盒内无可用 pnpm/网络,合并前待你本机跑一遍 <span class="hl">pnpm dev</span> 走查与 <span class="hl">pnpm build</span></figcaption>
+      </figure>
+    </div>
+
+    <!-- CI/CD side badge -->
+    <div class="side-badge">
+      <span class="badge-label">⚙ infra · CI/CD 完善</span>
+      <span>PR gate(lint · typecheck · 双站点 build)+ deploy 切 pnpm / Node 24</span>
+      <span class="ticks"><i class="tick on"></i><i class="tick on"></i><i class="tick on"></i><i class="tick on"></i></span>
+      <span>done</span>
+    </div>
+
+    <!-- /photos -->
+    <div class="node">
+      <div class="rail"><span class="dot pending"></span></div>
+      <div class="card">
+        <div class="kicker">期 3 · 下一步</div>
+        <div class="title-row"><span class="slug">/photos</span><span class="name">暗房</span></div>
+        <p class="scope">sync-images 脚本(iCloud 检查 · sharp 转 webp · blurhash · exiftool · 传 R2)· 瀑布流索引 · 灯箱 EXIF</p>
+        <div class="ticks"><i class="tick"></i><i class="tick"></i><i class="tick"></i><i class="tick"></i></div>
+        <div class="readout">not started · content/photos 尚不存在</div>
+        <div class="annotation">提前于 /notes(<span class="hl">round #4 决定</span>);DESIGN.md §9 已同步此顺序 —— <span class="hl">commit a250c9e</span>,2026-08-22</div>
+      </div>
+    </div>
+
+    <!-- /reel -->
+    <div class="node">
+      <div class="rail"><span class="dot partial"></span></div>
+      <div class="card">
+        <div class="kicker">新增 · 未编号</div>
+        <div class="title-row"><span class="slug">/reel</span><span class="name">卷带间</span></div>
+        <p class="scope">精选(手排,非时间序)+ 听歌日志(倒序追加);两节都是 content/reel/index.md 里的数组,轻量模型</p>
+        <div class="ticks"><i class="tick on"></i><i class="tick"></i><i class="tick"></i><i class="tick"></i></div>
+        <div class="readout">spec committed · <span class="hl">main @ 04c8096</span> · plan 待写</div>
+        <div class="annotation">封面走 /lab 的 poster 静态文件模式,<span class="hl">不依赖 /photos 的 R2 管线</span>(spec 内自我更正过这点);排在 /photos 之后纯属排期选择。导航词序(排 about 之后)与 RoomStatuses.reel 读数形态两处判断待你确认</div>
+      </div>
+    </div>
+
+    <!-- /notes -->
+    <div class="node">
+      <div class="rail"><span class="dot pending"></span></div>
+      <div class="card">
+        <div class="kicker">期 4</div>
+        <div class="title-row"><span class="slug">/notes</span><span class="name">档案室</span></div>
+        <p class="scope">内容管线 + zod frontmatter 校验 · new:note / dream / incident / roll 脚手架 · 列表 + 文章页 · RSS</p>
+        <div class="ticks"><i class="tick"></i><i class="tick"></i><i class="tick"></i><i class="tick"></i></div>
+        <div class="readout">not started</div>
+        <div class="annotation">现排在 <span class="hl">/photos</span> 之后</div>
+      </div>
+    </div>
+
+    <!-- 期5 i18n -->
+    <div class="node">
+      <div class="rail"><span class="dot pending"></span></div>
+      <div class="card">
+        <div class="kicker">期 5</div>
+        <div class="title-row"><span class="slug">/zh /en</span><span class="name">翻译版</span></div>
+        <p class="scope">双路由树(canonical + [locale])· UI 字典 · hreflang alternates · 页脚 mixed · 中文 · EN 切换器</p>
+        <div class="ticks"><i class="tick"></i><i class="tick"></i><i class="tick"></i><i class="tick"></i></div>
+        <div class="readout">not started</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="aside-card">
+    <div class="kicker">独立并行 · 不阻塞以上任何一期</div>
+    <p class="scope">/about 收藏架的音乐 shelf 待填真实曲目(2–3 条起,随时可补);Claude 不替你编,格式已备好</p>
+  </div>
+
+  <footer class="provenance">
+    roadmap reflects <span class="hl">main @ a2338fa</span> · docs/DESIGN.md §3 / §9 / §10.1 · 数据源是 docs/BUILD-LOG.md(含每期开工 prompt)· 这份可视化版本同时存在于仓库 <span class="hl">docs/BUILD-LOG.html</span> 与 Claude Artifact(托管链接,便于分享)· 更新于 2026-08-22
+  </footer>
+
+</div>
+</body>
+</html>
