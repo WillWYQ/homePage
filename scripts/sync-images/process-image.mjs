@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import { encode, decode } from "blurhash";
+import exifr from "exifr";
 
 export const SIZE_LADDER = [480, 960, 1600, 2400];
 
@@ -48,4 +49,52 @@ export async function buildBlur(buffer) {
   } catch {
     return { blurhash: null, blurDataUrl: null };
   }
+}
+
+function formatShutter(exposureTime) {
+  if (typeof exposureTime !== "number" || exposureTime <= 0) return undefined;
+  if (exposureTime >= 1) return `${exposureTime}s`;
+  return `1/${Math.round(1 / exposureTime)}`;
+}
+
+/** EXIF 提取 + takenAt 三层回落(spec §4.5)。选 exifr(纯 JS)而不是系统 exiftool
+ * 二进制:不给本机再加一个"有没有装某个命令行工具"的隐性依赖(呼应 §4.2 的 iCloud 教训)。 */
+export async function extractExif(buffer, { frontmatterDate, fileMtime } = {}) {
+  let raw = null;
+  try {
+    raw = await exifr.parse(buffer, {
+      pick: [
+        "Make",
+        "Model",
+        "LensModel",
+        "ISO",
+        "FNumber",
+        "ExposureTime",
+        "FocalLength",
+        "DateTimeOriginal",
+      ],
+    });
+  } catch {
+    raw = null;
+  }
+
+  const exif = raw
+    ? {
+        camera: raw.Model || undefined,
+        lens: raw.LensModel || undefined,
+        iso: typeof raw.ISO === "number" ? raw.ISO : undefined,
+        aperture: typeof raw.FNumber === "number" ? raw.FNumber : undefined,
+        shutter: formatShutter(raw.ExposureTime),
+        focal: typeof raw.FocalLength === "number" ? raw.FocalLength : undefined,
+      }
+    : null;
+  const hasAnyField = exif && Object.values(exif).some((v) => v !== undefined);
+
+  const takenAt =
+    (raw?.DateTimeOriginal instanceof Date ? raw.DateTimeOriginal.toISOString() : null) ||
+    (frontmatterDate ? new Date(frontmatterDate).toISOString() : null) ||
+    (fileMtime ? new Date(fileMtime).toISOString() : null) ||
+    null;
+
+  return { exif: hasAnyField ? exif : null, takenAt };
 }

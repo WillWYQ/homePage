@@ -1,6 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("exifr", () => ({
+  default: { parse: vi.fn() },
+}));
+
 import sharp from "sharp";
-import { resizeTiers, buildBlur, SIZE_LADDER } from "./process-image.mjs";
+import exifr from "exifr";
+import { resizeTiers, buildBlur, extractExif, SIZE_LADDER } from "./process-image.mjs";
 
 async function makeFixture(width, height) {
   return sharp({
@@ -50,5 +56,59 @@ describe("buildBlur", () => {
     const { blurhash, blurDataUrl } = await buildBlur(Buffer.from("not an image"));
     expect(blurhash).toBeNull();
     expect(blurDataUrl).toBeNull();
+  });
+});
+
+describe("extractExif", () => {
+  it("maps parsed EXIF fields and formats shutter speed as a fraction", async () => {
+    exifr.parse.mockResolvedValueOnce({
+      Model: "X100V",
+      LensModel: "23mm f/2",
+      ISO: 640,
+      FNumber: 2,
+      ExposureTime: 1 / 250,
+      FocalLength: 23,
+      DateTimeOriginal: new Date("2026-06-30T19:42:00+08:00"),
+    });
+    const { exif, takenAt } = await extractExif(Buffer.from("fake"), {});
+    expect(exif).toEqual({
+      camera: "X100V",
+      lens: "23mm f/2",
+      iso: 640,
+      aperture: 2,
+      shutter: "1/250",
+      focal: 23,
+    });
+    expect(takenAt).toBe(new Date("2026-06-30T19:42:00+08:00").toISOString());
+  });
+
+  it("falls back to frontmatter date when EXIF has no capture time", async () => {
+    exifr.parse.mockResolvedValueOnce(null);
+    const { exif, takenAt } = await extractExif(Buffer.from("fake"), {
+      frontmatterDate: "2026-06-30",
+    });
+    expect(exif).toBeNull();
+    expect(takenAt).toBe(new Date("2026-06-30").toISOString());
+  });
+
+  it("falls back to file mtime when EXIF and frontmatter date are both absent", async () => {
+    exifr.parse.mockResolvedValueOnce(null);
+    const mtime = new Date("2026-05-01T00:00:00Z");
+    const { takenAt } = await extractExif(Buffer.from("fake"), { fileMtime: mtime });
+    expect(takenAt).toBe(mtime.toISOString());
+  });
+
+  it("returns nulls for both when no source has a date", async () => {
+    exifr.parse.mockResolvedValueOnce(null);
+    const { exif, takenAt } = await extractExif(Buffer.from("fake"), {});
+    expect(exif).toBeNull();
+    expect(takenAt).toBeNull();
+  });
+
+  it("returns exif:null instead of throwing when parsing itself fails", async () => {
+    exifr.parse.mockRejectedValueOnce(new Error("bad format"));
+    const { exif, takenAt } = await extractExif(Buffer.from("fake"), {});
+    expect(exif).toBeNull();
+    expect(takenAt).toBeNull();
   });
 });
