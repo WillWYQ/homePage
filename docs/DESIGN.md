@@ -400,9 +400,11 @@ type Locale = 'canonical' | 'zh' | 'en'
 |---|---|---|
 | 1 骨架 | 导航、/now、/about、404、favicon、metadata、sitemap/robots、trailingSlash;页面组件签名自带 `locale` 参数(§7.2) | 双域名构建通过;yueqiao 构建不出新板块;红线自查通过 |
 | 2 实验区 | /lab 框架 + EXP-001~003(breathing field / tonight's tides / dream decay,§5) | 每件实验回答一个真问题并通过策展三问;记录面板含 question/method/observation/instruments;reduced-motion 降级可用 |
-| 3 档案室 | 内容库解析管线(§4)、zod frontmatter 校验、new:note/new:dream/new:incident/new:roll 脚手架、/notes 列表与文章页、RSS | 发布第一篇 note、第一条 REM 与第一份 IR(均由脚手架创建);故意写坏一个字段,构建报错且指明文件;feed.xml 可订阅 |
-| 4 暗房 | sync-images 脚本、R2 配置、/photos 页 | 第一卷照片上线;GitHub Pages 产物不含图片;脚本幂等可重跑 |
+| 3 暗房 | sync-images 脚本、R2 配置、/photos 页 | 第一卷照片上线;GitHub Pages 产物不含图片;脚本幂等可重跑 |
+| 4 档案室 | 内容库解析管线(§4)、zod frontmatter 校验、new:note/new:dream/new:incident/new:roll 脚手架、/notes 列表与文章页、RSS | 发布第一篇 note、第一条 REM 与第一份 IR(均由脚手架创建);故意写坏一个字段,构建报错且指明文件;feed.xml 可订阅 |
 | 5 翻译版 | /zh /en 路由树、UI 字典、hreflang、页脚切换器(§7) | about + now 有 zh/en 全译;回落页有标注且 noindex;sitemap 只收真实翻译;任意页面三版互切不 404 |
+
+> 2026-08-22 修订:期 3/4 对调(暗房先于档案室)。round #4 期间用户决定 /photos 提前于 /notes 上线;`/reel`(未编号新房间,规格见 [reel 设计文稿](superpowers/specs/2026-08-21-reel-room-design.md))建议排在 /photos 之后,复用其 R2 图片管线做精选封面——这条排期理由与本次对调是同一个决定的两个结果。
 
 ## 10. 组件与素材来源
 
