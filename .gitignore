@@ -48,3 +48,14 @@ next-env.d.ts
 
 # git worktree checkouts (each is its own repo checkout, not project content)
 .claude/worktrees/
+
+# content/photos 原图 gitignore,家在 R2(DESIGN §4 约定 4)——
+# 但组说明/翻译 markdown 要入库
+content/photos/**/*
+!content/photos/**/
+!content/photos/**/index.md
+!content/photos/**/index.zh.md
+!content/photos/**/index.en.md
+
+# dev 模式本地图片回落用的符号链接(photos darkroom spec §6.4)
+/public/_dev-photos
