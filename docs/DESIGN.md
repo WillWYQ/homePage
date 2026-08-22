@@ -404,7 +404,9 @@ type Locale = 'canonical' | 'zh' | 'en'
 | 4 档案室 | 内容库解析管线(§4)、zod frontmatter 校验、new:note/new:dream/new:incident/new:roll 脚手架、/notes 列表与文章页、RSS | 发布第一篇 note、第一条 REM 与第一份 IR(均由脚手架创建);故意写坏一个字段,构建报错且指明文件;feed.xml 可订阅 |
 | 5 翻译版 | /zh /en 路由树、UI 字典、hreflang、页脚切换器(§7) | about + now 有 zh/en 全译;回落页有标注且 noindex;sitemap 只收真实翻译;任意页面三版互切不 404 |
 
-> 2026-08-22 修订:期 3/4 对调(暗房先于档案室)。round #4 期间用户决定 /photos 提前于 /notes 上线;`/reel`(未编号新房间,规格见 [reel 设计文稿](superpowers/specs/2026-08-21-reel-room-design.md))建议排在 /photos 之后,复用其 R2 图片管线做精选封面——这条排期理由与本次对调是同一个决定的两个结果。
+> 2026-08-22 修订:期 3/4 对调(暗房先于档案室)。round #4 期间用户决定 /photos 提前于 /notes 上线;`/reel`(未编号新房间,规格见 [reel 设计文稿](superpowers/specs/2026-08-21-reel-room-design.md))建议排在 /photos 之后——这只是排期上的先后选择,不是技术依赖:/reel 的精选封面实际走 /lab 的 poster 静态文件模式,不需要 /photos 的 R2 管线(spec §2 对此有一处自我更正,此前口头说法有误)。
+>
+> 各期详细进度(spec/plan/build/merge 四步)与每期的开工 prompt 见 [BUILD-LOG.md](BUILD-LOG.md)。
 
 ## 10. 组件与素材来源
 
