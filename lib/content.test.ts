@@ -192,9 +192,10 @@ describe("getReel", () => {
   let hadPreexistingReel = false;
 
   beforeEach(() => {
-    hadPreexistingReel = fs.existsSync(REEL_DIR);
-    if (hadPreexistingReel) {
+    hadPreexistingReel = false;
+    if (fs.existsSync(REEL_DIR)) {
       fs.renameSync(REEL_DIR, REEL_BACKUP_DIR);
+      hadPreexistingReel = true;
     }
   });
 
@@ -256,5 +257,26 @@ describe("getReel", () => {
       ["---", "favorites:", "  - note: missing title", "---"].join("\n"),
     );
     expect(() => getReel()).toThrow(/favorites\.0\.title/);
+  });
+
+  it("sorts log entries newest-first regardless of frontmatter order", () => {
+    fs.mkdirSync(REEL_DIR, { recursive: true });
+    fs.writeFileSync(
+      REEL_FILE,
+      [
+        "---",
+        "log:",
+        "  - date: 2026-08-10",
+        '    text: "older entry"',
+        "  - date: 2026-08-20",
+        '    text: "newer entry"',
+        "---",
+      ].join("\n"),
+    );
+    const reel = getReel();
+    expect(reel).not.toBeNull();
+    expect(reel!.log).toHaveLength(2);
+    expect(reel!.log[0].text).toBe("newer entry");
+    expect(reel!.log[1].text).toBe("older entry");
   });
 });

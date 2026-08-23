@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RoomShell } from "@/components/room-shell";
 import { ReelSleeve } from "@/components/reel/reel-sleeve";
@@ -61,7 +62,7 @@ export default function ReelPage({ locale = "canonical" }: { locale?: Locale }) 
       )}
 
       {reel.log.length > 0 && (
-        <section className="mt-24">
+        <section className={reel.favorites.length > 0 ? "mt-24" : undefined}>
           <h2 className="font-mono text-xs text-white/40">
             {t("reel.section.log", locale)}
           </h2>
@@ -76,12 +77,12 @@ export default function ReelPage({ locale = "canonical" }: { locale?: Locale }) 
                   {entry.ref && (
                     <>
                       {" "}
-                      <a
+                      <Link
                         href={entry.ref}
                         className="font-mono text-xs text-white/60 underline-offset-4 transition-colors duration-200 hover:text-white hover:underline focus-visible:text-white focus-visible:underline"
                       >
                         {entry.ref}
-                      </a>
+                      </Link>
                     </>
                   )}
                 </p>

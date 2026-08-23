@@ -95,4 +95,18 @@ describe("reelSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("rejects a javascript: href", () => {
+    const result = reelSchema.safeParse({
+      favorites: [{ title: "x", href: "javascript:alert(1)" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a protocol-relative ref", () => {
+    const result = reelSchema.safeParse({
+      log: [{ date: "2026-08-20", text: "x", ref: "//evil.example" }],
+    });
+    expect(result.success).toBe(false);
+  });
 });

@@ -219,7 +219,7 @@ export function formatPeek(
     case "reel": {
       const s = statuses.reel;
       if (!s) return null;
-      if (zh) return `reel: ${s.favorites} 首精选 · ${s.logEntries} 条日志`;
+      if (zh) return `reel: ${s.favorites} 张精选 · ${s.logEntries} 条日志`;
       const fav = s.favorites === 1 ? "favorite" : "favorites";
       const entries = s.logEntries === 1 ? "entry" : "entries";
       return `reel: ${s.favorites} ${fav} · ${s.logEntries} log ${entries}`;

@@ -40,7 +40,11 @@ export const reelFavoriteSchema = z.object({
       "sleeve 必须是 /reel/ 开头的图片路径(如 /reel/xxx.jpg)",
     )
     .optional(),
-  href: z.string().trim().url().optional(),
+  href: z
+    .string()
+    .trim()
+    .regex(/^https?:\/\//i, "href 必须是 http(s) 外链")
+    .optional(),
 });
 
 export const reelLogEntrySchema = z.object({
@@ -49,7 +53,7 @@ export const reelLogEntrySchema = z.object({
   ref: z
     .string()
     .trim()
-    .regex(/^\//, "ref 必须是站内路径,以 / 开头")
+    .regex(/^\/(?!\/)/, "ref 必须是站内路径,以单个 / 开头(不能是 // 开头的协议相对地址)")
     .optional(),
 });
 

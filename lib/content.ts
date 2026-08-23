@@ -262,7 +262,10 @@ export function getLabExperiment(slug: string): LabExperiment | null {
 // 精选(策展式)与日志(时间序)两段共存(spec §2/§3)。frontmatter 走 zod 校验
 // (reelSchema),校验失败直接抛错——同 photoSetSchema 的处理,单作者站点提前
 // 发现拼写错误好过悄悄丢内容。两段各自允许为空;是否 404 由调用方(page.tsx)
-// 按"两段皆空"判断,不是这个函数的职责。
+// 按"两段皆空"判断,不是这个函数的职责。log 按日期降序排序(最新在前)——
+// spec 明确拒绝"置顶"就是为了保持严格时间序,不排序会让乱序写入的 frontmatter
+// 悄悄破坏这个约定;favorites 是策展式收藏(§2:"策展式、非时间序的收藏"),
+// 保留 frontmatter 原始顺序,不排序。
 
 export type ReelFavorite = {
   title: string;
@@ -294,6 +297,14 @@ export function getReel(): ReelContent | null {
     throw new Error(`content/reel/index.md frontmatter 校验失败:\n${issues}`);
   }
 
+  const log = (result.data.log ?? [])
+    .map((l) => ({
+      date: l.date.toISOString(),
+      text: l.text,
+      ref: l.ref,
+    }))
+    .sort((a, b) => b.date.localeCompare(a.date));
+
   return {
     favorites: (result.data.favorites ?? []).map((f) => ({
       title: f.title,
@@ -301,11 +312,7 @@ export function getReel(): ReelContent | null {
       sleeve: f.sleeve,
       href: f.href,
     })),
-    log: (result.data.log ?? []).map((l) => ({
-      date: l.date.toISOString(),
-      text: l.text,
-      ref: l.ref,
-    })),
+    log,
   };
 }
 
