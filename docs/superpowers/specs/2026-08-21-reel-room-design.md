@@ -140,3 +140,7 @@ log:
 ---
 
 Track A(`/about` 音乐收藏架)仍在等真实歌单,与本文档并行、互不阻塞。
+
+---
+
+**2026-08-23 补记:** §4 两处"待确认"判断已由用户拍板,均按本文档原建议执行——导航词序追加在 `about` 之后(六词序 `now · lab · notes · photos · about · reel`);`RoomStatuses.reel` 采用 `{ favorites: number; logEntries: number } | null`。实现见 [2026-08-23-reel-room.md](../plans/2026-08-23-reel-room.md),[PR #4](https://github.com/WillWYQ/homePage/pull/4)。

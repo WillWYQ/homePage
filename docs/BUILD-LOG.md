@@ -21,7 +21,7 @@
 | 2 | /lab 实验区 | ✅ | ✅ | ✅ | 🟡 | EXP-001 已合并;EXP-002/003 已实现并完成本机验证(`tsc`/`eslint`/双站 `build` 均过,`pnpm dev` 走查通过,含一处 reduced-motion 修复),[PR #2](https://github.com/WillWYQ/homePage/pull/2) 待合并——DESIGN §9 期2 的完成标准已满足,仅差 merge 这一格 |
 | — | infra · CI/CD 完善 | ✅ | ✅ | ✅ | ✅ | 直接在 main 上做的,没走 worktree |
 | 3 | /photos 暗房 | ✅ | ✅ | ✅ | ⬜ | 管线与页面已实现、本机验证、[PR #3](https://github.com/WillWYQ/homePage/pull/3) 待合并;R2 未配置、无真实素材,内容上线待用户完成 R2 配置后自行运行 `pnpm sync:images` |
-| — | /reel 卷带间 | ✅ | ⬜ | ⬜ | ⬜ | spec 已提交(`04c8096`);两处判断待确认,见下 |
+| — | /reel 卷带间 | ✅ | ✅ | ✅ | ⬜ | 两处判断已确认(均按 spec 原建议);plan/实现/双站 build/测试均完成,[PR #4](https://github.com/WillWYQ/homePage/pull/4) 待合并;内容未上线,`open` 仍为 `false` |
 | 4 | /notes 档案室 | ⬜ | ⬜ | ⬜ | ⬜ | 排在 /photos 之后(round #4 决定) |
 | 5 | /zh /en 翻译版 | ⬜ | ⬜ | ⬜ | ⬜ | 建议其他房间稳定后再做 |
 
@@ -78,14 +78,14 @@
 
 ## /reel 卷带间(未编号,建议排在 /photos 之后)
 
-**状态:** spec 已写完并提交主干(`docs/superpowers/specs/2026-08-21-reel-room-design.md`,commit `04c8096`)。plan 还没写,实现还没开始。
+**状态(2026-08-23 完成 plan/build,[PR #4](https://github.com/WillWYQ/homePage/pull/4) 待合并):** 两处判断已由用户拍板,均按 spec §4 原建议执行(导航词序追加在 `about` 之后;`RoomStatuses.reel` 用 `{ favorites, logEntries } | null`),确认结果已补记在 spec 文档末尾。计划 [2026-08-23-reel-room.md](superpowers/plans/2026-08-23-reel-room.md)(5 任务)→ `worktree-reel-room` 分支按 subagent-driven-development 逐任务实现,每任务独立测试+审查(其中 Task 2 的空状态测试审查中发现并修复一处真实的数据丢失风险:测试 teardown 会无条件删除真实 `content/reel/` 目录)→ 最终整体审查(opus)发现 3 处 Important + 8 处 Minor(无 Critical),一轮修复全部处理(封面图加 hydration-safe 的加载失败检测、日志按日期倒序排列、`href`/`ref` 收紧校验、内部链接改用 `next/link` 等),1 处 Minor(`getRoomStatuses().reel`/`formatPeek` 的 reel 分支无测试覆盖)有意保留,理由是与这两个函数现有其他房间分支的覆盖率一致,不是这次改动引入的退步。`npx tsc --noEmit`/`pnpm lint`/`npx vitest run`(58/58)/`pnpm build:willsleep`/`pnpm build:yueqiao` 均过,双站 build 产物人工核对确认 `/reel` 在 yueqiao 构建下不泄露房间名(与 `/photos` 现状同构)。**内容未上线**(`content/reel/index.md` 未创建,`open` 仍为 `false`,与 `/notes`/`/photos` 上线前现状一致)。唯一未完成的验收项:走廊六词导航宽度需要在真实浏览器里人工复测(HOME-DESIGN §4.2 登记项,本环境无法自动化)。
 
-**开工前必须先确认的两处判断(spec §4 里明确留白,不要替用户拍板):**
+**开工前必须先确认的两处判断(spec §4 里明确留白,不要替用户拍板)——已于 2026-08-23 确认,存档:**
 
-1. 导航词序——spec 建议把 `reel` 追加在 `ROOMS` 数组最后(`now · lab · notes · photos · about · reel`),而不是按语义插进 `lab`/`notes` 之间
-2. `RoomStatuses.reel` 的门缝读数形态——spec 建议 `{ favorites: number, logEntries: number } | null`,仿照 `/lab` 现有的 `{ experiments, ongoing }`
+1. 导航词序——spec 建议把 `reel` 追加在 `ROOMS` 数组最后(`now · lab · notes · photos · about · reel`),而不是按语义插进 `lab`/`notes` 之间 → **采纳**
+2. `RoomStatuses.reel` 的门缝读数形态——spec 建议 `{ favorites: number, logEntries: number } | null`,仿照 `/lab` 现有的 `{ experiments, ongoing }` → **采纳**
 
-**开工 prompt:**
+**开工 prompt(存档,本期已完成,留作以后同类任务参考):**
 
 ```
 这个任务必须用本仓库已有的 superpowers skill 套件完成——下面每一步都是要你真的调用对应的 skill。
