@@ -1,0 +1,23 @@
+{
+  "photos/imp/IMG_1940.png": {
+    "id": "ce9a80b87b",
+    "roll": "imp",
+    "takenAt": "2024-07-16T01:37:15.000Z",
+    "width": 960,
+    "height": 1280,
+    "blurhash": "UFHn?G00ShV?~o_3V@SeIqoz?G%MD%NH^+xZ",
+    "blurDataUrl": "data:image/png;base64,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",
+    "exif": {
+      "camera": "iPhone 13 Pro Max",
+      "lens": "iPhone 13 Pro Max back triple camera 5.7mm f/1.5",
+      "iso": 500,
+      "aperture": 1.5,
+      "shutter": "1/45",
+      "focal": 5.7
+    },
+    "sizes": {
+      "480": "https://img.willsleep.dev/ce9a80b87b-480.webp",
+      "960": "https://img.willsleep.dev/ce9a80b87b-960.webp"
+    }
+  }
+}
