@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { getPhotoRolls, getPhotoRoll } from "./content";
+import { getPhotoRolls, getPhotoRoll, getReel } from "./content";
 
 function makeFixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "photos-fixture-"));
@@ -181,5 +181,102 @@ describe("getPhotoRolls / getPhotoRoll", () => {
       devLinkPath: fixture.devLinkPath,
     });
     expect(rolls).toEqual([]);
+  });
+});
+
+const REEL_DIR = path.join(process.cwd(), "content", "reel");
+const REEL_FILE = path.join(REEL_DIR, "index.md");
+
+describe("getReel", () => {
+  const REEL_BACKUP_DIR = path.join(process.cwd(), "content", "_reel-test-backup");
+  let hadPreexistingReel = false;
+
+  beforeEach(() => {
+    hadPreexistingReel = false;
+    if (fs.existsSync(REEL_DIR)) {
+      fs.renameSync(REEL_DIR, REEL_BACKUP_DIR);
+      hadPreexistingReel = true;
+    }
+  });
+
+  afterEach(() => {
+    fs.rmSync(REEL_DIR, { recursive: true, force: true });
+    if (hadPreexistingReel) {
+      fs.renameSync(REEL_BACKUP_DIR, REEL_DIR);
+      hadPreexistingReel = false;
+    }
+  });
+
+  it("returns null when content/reel/index.md does not exist", () => {
+    expect(getReel()).toBeNull();
+  });
+
+  it("renders only the log section when favorites is empty", () => {
+    fs.mkdirSync(REEL_DIR, { recursive: true });
+    fs.writeFileSync(
+      REEL_FILE,
+      ["---", "log:", "  - date: 2026-08-20", '    text: "重听老唱片"', "---"].join("\n"),
+    );
+    const reel = getReel();
+    expect(reel).not.toBeNull();
+    expect(reel!.favorites).toEqual([]);
+    expect(reel!.log).toHaveLength(1);
+    expect(reel!.log[0].text).toBe("重听老唱片");
+    expect(reel!.log[0].date.slice(0, 10)).toBe("2026-08-20");
+  });
+
+  it("renders only the favorites section when log is empty", () => {
+    fs.mkdirSync(REEL_DIR, { recursive: true });
+    fs.writeFileSync(
+      REEL_FILE,
+      [
+        "---",
+        "favorites:",
+        '  - title: "some album"',
+        '    note: "反复回去听"',
+        "---",
+      ].join("\n"),
+    );
+    const reel = getReel();
+    expect(reel).not.toBeNull();
+    expect(reel!.log).toEqual([]);
+    expect(reel!.favorites).toHaveLength(1);
+    expect(reel!.favorites[0].title).toBe("some album");
+  });
+
+  it("returns empty arrays for both sections when frontmatter has neither key", () => {
+    fs.mkdirSync(REEL_DIR, { recursive: true });
+    fs.writeFileSync(REEL_FILE, ["---", "title: reel", "---"].join("\n"));
+    expect(getReel()).toEqual({ favorites: [], log: [] });
+  });
+
+  it("throws with a readable message when frontmatter fails validation", () => {
+    fs.mkdirSync(REEL_DIR, { recursive: true });
+    fs.writeFileSync(
+      REEL_FILE,
+      ["---", "favorites:", "  - note: missing title", "---"].join("\n"),
+    );
+    expect(() => getReel()).toThrow(/favorites\.0\.title/);
+  });
+
+  it("sorts log entries newest-first regardless of frontmatter order", () => {
+    fs.mkdirSync(REEL_DIR, { recursive: true });
+    fs.writeFileSync(
+      REEL_FILE,
+      [
+        "---",
+        "log:",
+        "  - date: 2026-08-10",
+        '    text: "older entry"',
+        "  - date: 2026-08-20",
+        '    text: "newer entry"',
+        "---",
+      ].join("\n"),
+    );
+    const reel = getReel();
+    expect(reel).not.toBeNull();
+    expect(reel!.log).toHaveLength(2);
+    expect(reel!.log[0].text).toBe("newer entry");
+    expect(reel!.log[1].text).toBe("older entry");
   });
 });
