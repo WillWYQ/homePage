@@ -188,8 +188,22 @@ const REEL_DIR = path.join(process.cwd(), "content", "reel");
 const REEL_FILE = path.join(REEL_DIR, "index.md");
 
 describe("getReel", () => {
+  const REEL_BACKUP_DIR = path.join(process.cwd(), "content", "_reel-test-backup");
+  let hadPreexistingReel = false;
+
+  beforeEach(() => {
+    hadPreexistingReel = fs.existsSync(REEL_DIR);
+    if (hadPreexistingReel) {
+      fs.renameSync(REEL_DIR, REEL_BACKUP_DIR);
+    }
+  });
+
   afterEach(() => {
     fs.rmSync(REEL_DIR, { recursive: true, force: true });
+    if (hadPreexistingReel) {
+      fs.renameSync(REEL_BACKUP_DIR, REEL_DIR);
+      hadPreexistingReel = false;
+    }
   });
 
   it("returns null when content/reel/index.md does not exist", () => {
