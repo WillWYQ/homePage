@@ -3,11 +3,14 @@ import fs from "node:fs";
 import path from "node:path";
 
 export function readManifest(manifestPath) {
+  let raw;
   try {
-    return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  } catch {
-    return {};
+    raw = fs.readFileSync(manifestPath, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") return {};
+    throw err;
   }
+  return JSON.parse(raw); // 损坏的 JSON 现在会抛出,不再被静默吞掉
 }
 
 /** 合并不是覆盖(spec §4.6):已存在但这次没扫到的条目原样保留。 */

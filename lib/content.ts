@@ -351,11 +351,14 @@ const DEV_LINK_PATH = path.join(process.cwd(), "public", "_dev-photos");
 const IMAGE_FILE_RE = /\.(jpe?g|png|webp|heic)$/i;
 
 function readManifestFile(manifestPath: string): ImageManifest {
+  let raw: string;
   try {
-    return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  } catch {
-    return {};
+    raw = fs.readFileSync(manifestPath, "utf8");
+  } catch (err) {
+    if (err && typeof err === "object" && "code" in err && err.code === "ENOENT") return {};
+    throw err;
   }
+  return JSON.parse(raw);
 }
 
 /** 独立于 readUnit():readUnit() 固定读真实 CONTENT_DIR,这里要支持测试注入的 photosDir。 */

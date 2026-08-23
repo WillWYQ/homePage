@@ -91,6 +91,8 @@ export function PhotoDarkroom({ rolls }: { rolls: PhotoRoll[] }) {
                   sizes="(min-width: 768px) 33vw, 50vw"
                   alt={frame.caption ?? ""}
                   loading="lazy"
+                  width={frame.width ?? undefined}
+                  height={frame.height ?? undefined}
                   style={
                     frame.blurDataUrl
                       ? { backgroundImage: `url(${frame.blurDataUrl})`, backgroundSize: "cover" }
@@ -123,6 +125,8 @@ export function PhotoDarkroom({ rolls }: { rolls: PhotoRoll[] }) {
             src={largestSrc(activeFrame)}
             srcSet={srcSetFor(activeFrame)}
             alt={activeFrame.caption ?? ""}
+            width={activeFrame.width ?? undefined}
+            height={activeFrame.height ?? undefined}
             className="max-h-[80vh] max-w-full object-contain"
           />
           {exifLine && <p className="mt-4 font-mono text-xs text-white/40">{exifLine}</p>}

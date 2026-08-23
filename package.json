@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "sync:images": "node scripts/sync-images.mjs",
+    "sync:images": "node --env-file-if-exists=.env.local scripts/sync-images.mjs",
     "test": "vitest run"
   },
   "dependencies": {

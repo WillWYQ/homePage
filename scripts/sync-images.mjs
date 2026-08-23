@@ -8,6 +8,7 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { S3Client } from "@aws-sdk/client-s3";
+import matter from "gray-matter";
 import { contentHash } from "./sync-images/hash.mjs";
 import { isDataless, waitForMaterialize } from "./sync-images/icloud.mjs";
 import { resizeTiers, buildBlur, extractExif } from "./sync-images/process-image.mjs";
@@ -54,6 +55,19 @@ function listCandidateFiles(rolls) {
   return files;
 }
 
+/** 卷(roll)的 index.md frontmatter date(spec §4.5 tier 2)。宽容处理:文件缺失或
+ * date 字段缺失都返回 undefined,不抛出——这里不做 zod 校验,那是 lib/content.ts
+ * 在 Next build 时的职责,这里只是尽力而为的日期读取。 */
+function readRollFrontmatterDate(roll) {
+  try {
+    const raw = fs.readFileSync(path.join(CONTENT_DIR, roll, "index.md"), "utf8");
+    const { data } = matter(raw);
+    return data?.date;
+  } catch {
+    return undefined;
+  }
+}
+
 /** iCloud 检查(spec §4.2):真实的 ls -lO / brctl download 只在这里 shell out,
  * 逻辑本身在 icloud.mjs 已测试过,这里只是接线。 */
 async function checkIcloud(absPath) {
@@ -76,7 +90,7 @@ async function checkIcloud(absPath) {
   });
 }
 
-async function buildEntry(candidate) {
+async function buildEntry(candidate, frontmatterDate) {
   const buffer = fs.readFileSync(candidate.absPath);
   const id = contentHash(buffer);
   const { width, height, tiers } = await resizeTiers(buffer);
@@ -88,7 +102,7 @@ async function buildEntry(candidate) {
   }
   const { blurhash, blurDataUrl } = await buildBlur(buffer);
   const stat = fs.statSync(candidate.absPath);
-  const { exif, takenAt } = await extractExif(buffer, { fileMtime: stat.mtime });
+  const { exif, takenAt } = await extractExif(buffer, { frontmatterDate, fileMtime: stat.mtime });
   return {
     source: candidate.source,
     entry: { id, roll: candidate.roll, takenAt, width, height, blurhash, blurDataUrl, exif },
@@ -114,6 +128,7 @@ async function main() {
     }
   }
 
+  const rollDates = new Map();
   const built = [];
   for (const candidate of candidates) {
     const icloudResult = await checkIcloud(candidate.absPath);
@@ -124,7 +139,10 @@ async function main() {
       );
       continue;
     }
-    const built1 = await buildEntry(candidate);
+    if (!rollDates.has(candidate.roll)) {
+      rollDates.set(candidate.roll, readRollFrontmatterDate(candidate.roll));
+    }
+    const built1 = await buildEntry(candidate, rollDates.get(candidate.roll));
     if (built1) built.push(built1);
   }
 

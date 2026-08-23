@@ -163,6 +163,17 @@ describe("getPhotoRolls / getPhotoRoll", () => {
     ).rejects.toThrow(/2026-06-hangzhou[\s\S]*photos\.0\.file/);
   });
 
+  it("throws (rather than silently overwriting) when the manifest file is malformed JSON", async () => {
+    fs.writeFileSync(fixture.manifestPath, "{ not valid json");
+    await expect(
+      getPhotoRolls({
+        photosDir: fixture.photosDir,
+        manifestPath: fixture.manifestPath,
+        devLinkPath: fixture.devLinkPath,
+      }),
+    ).rejects.toThrow();
+  });
+
   it("returns [] when the photos directory doesn't exist", async () => {
     const rolls = await getPhotoRolls({
       photosDir: "/nonexistent/dir",

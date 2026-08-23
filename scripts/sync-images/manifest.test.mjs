@@ -16,6 +16,13 @@ describe("readManifest", () => {
     fs.writeFileSync(file, JSON.stringify({ "photos/a/1.jpg": { id: "abc123" } }));
     expect(readManifest(file)).toEqual({ "photos/a/1.jpg": { id: "abc123" } });
   });
+
+  it("throws on malformed JSON instead of silently returning {} (spec §4.6: merge, not overwrite)", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "manifest-test-"));
+    const file = path.join(dir, "manifest.json");
+    fs.writeFileSync(file, "{ not valid json");
+    expect(() => readManifest(file)).toThrow();
+  });
 });
 
 describe("mergeManifest", () => {
