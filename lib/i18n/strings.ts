@@ -77,6 +77,10 @@ const STRINGS = {
   "about.shelves": { canonical: "shelves", zh: "收藏架", en: "shelves" },
   "about.annotation": { canonical: "本人批注", zh: "本人批注", en: "resident's note" },
 
+  // /reel 卷带间(spec docs/superpowers/specs/2026-08-21-reel-room-design.md §5)
+  "reel.section.favorites": { canonical: "favorites", zh: "精选", en: "favorites" },
+  "reel.section.log": { canonical: "log", zh: "日志", en: "log" },
+
   // /lab 实验区(§DESIGN 5)。相位词 inhale/hold/exhale 是仪表读数,不进字典(§7.1)。
   "lab.back": { canonical: "lab", zh: "实验区", en: "lab" },
   "lab.record.question": { canonical: "question", zh: "问题", en: "question" },
@@ -211,6 +215,14 @@ export function formatPeek(
       const s = statuses.about;
       if (!s) return null;
       return zh ? "about: 常驻研究员一名 · 夜行性" : "about: one resident · nocturnal";
+    }
+    case "reel": {
+      const s = statuses.reel;
+      if (!s) return null;
+      if (zh) return `reel: ${s.favorites} 首精选 · ${s.logEntries} 条日志`;
+      const fav = s.favorites === 1 ? "favorite" : "favorites";
+      const entries = s.logEntries === 1 ? "entry" : "entries";
+      return `reel: ${s.favorites} ${fav} · ${s.logEntries} log ${entries}`;
     }
   }
 }
