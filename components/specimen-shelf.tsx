@@ -78,6 +78,13 @@ function Specimen({ room }: { room: RoomId }) {
           <path d="M22 56 q8 -8 16 0 z" />
         </g>
       );
+    case "reel": // 卷带
+      return (
+        <g stroke={GREEN} strokeWidth="1.2" fill="none">
+          <circle cx="30" cy="45" r="12" />
+          <circle cx="30" cy="45" r="3" fill={GREEN} stroke="none" />
+        </g>
+      );
   }
 }
 
