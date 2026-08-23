@@ -20,7 +20,7 @@
 | 1 | 骨架 | ✅ | ✅ | ✅ | ✅ | on main |
 | 2 | /lab 实验区 | ✅ | ✅ | ✅ | 🟡 | EXP-001 已合并;EXP-002/003 已实现并完成本机验证(`tsc`/`eslint`/双站 `build` 均过,`pnpm dev` 走查通过,含一处 reduced-motion 修复),[PR #2](https://github.com/WillWYQ/homePage/pull/2) 待合并——DESIGN §9 期2 的完成标准已满足,仅差 merge 这一格 |
 | — | infra · CI/CD 完善 | ✅ | ✅ | ✅ | ✅ | 直接在 main 上做的,没走 worktree |
-| 3 | /photos 暗房 | ✅ | ✅ | ✅ | ⬜ | 管线与页面已实现并本机验证;R2 未配置、无真实素材,内容上线待用户完成 R2 配置后自行运行 `pnpm sync:images` |
+| 3 | /photos 暗房 | ✅ | ✅ | ✅ | ⬜ | 管线与页面已实现、本机验证、[PR #3](https://github.com/WillWYQ/homePage/pull/3) 待合并;R2 未配置、无真实素材,内容上线待用户完成 R2 配置后自行运行 `pnpm sync:images` |
 | — | /reel 卷带间 | ✅ | ⬜ | ⬜ | ⬜ | spec 已提交(`04c8096`);两处判断待确认,见下 |
 | 4 | /notes 档案室 | ⬜ | ⬜ | ⬜ | ⬜ | 排在 /photos 之后(round #4 决定) |
 | 5 | /zh /en 翻译版 | ⬜ | ⬜ | ⬜ | ⬜ | 建议其他房间稳定后再做 |
@@ -39,11 +39,11 @@
 
 ## 期 3 · /photos 暗房
 
+**状态(2026-08-22 完成 spec/plan/build,[PR #3](https://github.com/WillWYQ/homePage/pull/3) 待合并):** 两个开工前提已确认——R2 从零配置(用户后续自行完成,脚本无凭据时拒绝写 manifest);暂无真实素材,占位图跑通全流程。规格 [2026-08-21-photos-darkroom-design.md](superpowers/specs/2026-08-21-photos-darkroom-design.md)(经 subagent 审查修复一轮)→ 计划 [2026-08-22-photos-darkroom.md](superpowers/plans/2026-08-22-photos-darkroom.md)(15 任务)→ `worktree-photos-darkroom` 分支按 subagent-driven-development 逐任务实现,每任务独立测试+审查(其中 Task 3 的 iCloud 超时模块审查中发现并修复一处真实的挂死风险)→ 最终整体审查发现并修复 5 处问题(其中一处是本分支自己引入的 CI 破坏性回归:Task 1 的 `pnpm add` 把 `next` 从 16.2.12 升到 16.3.2,导致 `next.config.ts` 里一个已被 Next 弃用的 `experimental.viewTransition` 键报错,连带 typecheck 与两站 build 全部失败)。`npx tsc --noEmit`/`pnpm lint`/`pnpm test`(43/43)/`pnpm build:willsleep`/`pnpm build:yueqiao` 均过,`pnpm sync:images --dry-run` 幂等验证通过。**管线已交付,内容未上线**(见下方范围说明)。
+
 **范围(DESIGN.md §4/§5/§6):** sync-images 脚本(iCloud 检查 → sharp 转 webp → blurhash → exiftool → 传 R2)、R2 首次配置、瀑布流索引页、灯箱 + EXIF 展示。
 
-**已知悬而未决的前提(round #4 提过,还没答):** R2 是否已经建好 bucket / 自定义域,还是要从零配置;照片素材是否已经按 roll 整理成文件夹。开工前先确认这两条,别让 prompt 跑到一半卡住。
-
-**开工 prompt:**
+**开工 prompt(存档,本期已完成,留作以后同类任务参考):**
 
 ```
 这个任务必须用本仓库已有的 superpowers skill 套件完成——下面每一步都是要你真的调用对应的 skill,
