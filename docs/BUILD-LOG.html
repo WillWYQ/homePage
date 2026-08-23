@@ -352,15 +352,58 @@
 
     <!-- /photos -->
     <div class="node">
-      <div class="rail"><span class="dot pending"></span></div>
+      <div class="rail"><span class="dot partial"></span></div>
       <div class="card">
-        <div class="kicker">期 3 · 下一步</div>
+        <div class="kicker">期 3 · PR 待合并</div>
         <div class="title-row"><span class="slug">/photos</span><span class="name">暗房</span></div>
-        <p class="scope">sync-images 脚本(iCloud 检查 · sharp 转 webp · blurhash · exiftool · 传 R2)· 瀑布流索引 · 灯箱 EXIF</p>
-        <div class="ticks"><i class="tick"></i><i class="tick"></i><i class="tick"></i><i class="tick"></i></div>
-        <div class="readout">not started · content/photos 尚不存在</div>
-        <div class="annotation">提前于 /notes(<span class="hl">round #4 决定</span>);DESIGN.md §9 已同步此顺序 —— <span class="hl">commit a250c9e</span>,2026-08-22</div>
+        <p class="scope">sync-images 脚本(iCloud 检查 · sharp 转 webp · blurhash · exiftool → exifr · 传 R2)· 瀑布流索引 · 灯箱 EXIF</p>
+        <div class="ticks"><i class="tick on"></i><i class="tick on"></i><i class="tick on"></i><i class="tick"></i></div>
+        <div class="readout">管线与页面已实现、本机验证通过(tsc/lint/test 43·43/双站 build),<span class="hl">PR #3</span> 待合并,见下方分支</div>
+        <div class="annotation">R2 未配置、无真实素材(用户后续自行完成);内容上线不在本次范围,<span class="hl">lib/rooms.ts</span> 的 <span class="hl">photos.open</span> 仍为 false</div>
       </div>
+    </div>
+
+    <!-- branch figure: /photos darkroom -->
+    <div class="branch-block">
+      <figure class="branch-figure">
+        <svg viewBox="0 0 600 210" role="img" aria-label="/photos 暗房管线已在隔离分支 worktree-photos-darkroom 实现，15 个任务 + 最终整体审查（含一轮修复），尚未合并回 main">
+          <defs>
+            <marker id="arrow-photos" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" class="arrow-fill"></path>
+            </marker>
+          </defs>
+
+          <!-- main trunk continuing through this section -->
+          <line x1="40" y1="6" x2="40" y2="204" class="trunk-line"></line>
+          <text x="40" y="20" text-anchor="middle" class="lbl-dim">main</text>
+
+          <!-- fork point off main -->
+          <circle cx="40" cy="40" r="5" class="dot-fill"></circle>
+
+          <!-- curve out to branch -->
+          <path d="M40,40 C 96,40 96,78 150,78" class="branch-line"></path>
+          <!-- branch parallel dashed line -->
+          <line x1="150" y1="78" x2="520" y2="78" class="branch-line dashed"></line>
+
+          <!-- sync pipeline milestone -->
+          <circle cx="255" cy="78" r="5" class="dot-fill"></circle>
+          <text x="255" y="60" text-anchor="middle" class="lbl">sync-images 管线 · 5 模块 + CLI</text>
+
+          <!-- page + final review milestone -->
+          <circle cx="435" cy="78" r="5" class="dot-fill"></circle>
+          <text x="435" y="60" text-anchor="middle" class="lbl">/photos 页面 · 最终审查修复</text>
+
+          <text x="335" y="100" text-anchor="middle" class="lbl-dim">worktree-photos-darkroom · 15 任务</text>
+
+          <!-- dashed return toward trunk, not yet arrived -->
+          <path d="M520,78 C 566,78 566,150 500,150 L 56,168" class="branch-line dashed" marker-end="url(#arrow-photos)"></path>
+
+          <!-- pending-merge hollow dot on trunk -->
+          <circle cx="40" cy="176" r="6" class="dot-hollow"></circle>
+          <text x="58" y="180" class="lbl-dim">PR #3 open · awaiting review/merge</text>
+        </svg>
+        <figcaption><span class="hl">/photos 暗房</span>——五个纯函数同步模块(各自单测)+ CLI 编排、<span class="hl">photoSetSchema</span>、<span class="hl">getPhotoRolls</span>/<span class="hl">getPhotoRoll</span>(首个 async 内容读取函数)、瀑布流 + 灯箱页面,<span class="hl">vitest</span> 作为本仓库首个测试框架(43 用例)。任务级审查中修复一处真实的 iCloud 挂死风险;最终整体审查另发现并修复 5 处问题,其中一处是本分支自己引入的 CI 破坏性回归(<span class="hl">next</span> 16.2.12→16.3.2 的连带依赖升级)。已推送并开出 <span class="hl">PR #3</span>,等待 review 后合并</figcaption>
+      </figure>
     </div>
 
     <!-- /reel -->
