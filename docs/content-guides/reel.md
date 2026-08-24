@@ -13,8 +13,8 @@
 | `favorites` | array | 否 | 策展式精选,**不按时间排序**,保留 frontmatter 里写的原始顺序。 |
 | `favorites[].title` | string | **是** | 精选条目标题。 |
 | `favorites[].note` | string | 否 | 说明文字。 |
-| `favorites[].sleeve` | string | 否 | 封面图路径,必须匹配 `^/reel/.+\.(jpe?g|png|webp|svg)$`——即以 `/reel/` 开头。指向 `public/reel/` 下的静态文件,**不走 R2**、零管线。加载失败或缺失时优雅降级成纯文字卡,不留破图占位。 |
-| `favorites[].href` | string | 否 | 外链,必须匹配 `^https?://`(http/https 开头)。 |
+| `favorites[].sleeve` | string | 否 | 封面图路径,必须匹配 `^/reel/.+\.(jpe?g\|png\|webp\|svg)$`(大小写不敏感)——即以 `/reel/` 开头。指向 `public/reel/` 下的静态文件,**不走 R2**、零管线。加载失败或缺失时优雅降级成纯文字卡,不留破图占位。 |
+| `favorites[].href` | string | 否 | 外链,必须匹配 `^https?://`(http/https 开头,大小写不敏感)。 |
 | `log` | array | 否 | 时间序日志,**按 `date` 降序排序**(最新在前)——spec 明确拒绝"置顶"这个概念,所以没有额外的排序字段。 |
 | `log[].date` | date | **是** | 日志日期。 |
 | `log[].text` | string | **是** | 日志正文。 |
@@ -54,8 +54,9 @@ log:
   的 `poster` 字段模式)。
 - `log` 是严格按 `date` 排序的时间序,frontmatter 里写的顺序不影响最终显示顺序;
   `favorites` 相反,是策展式的,顺序就是你写的顺序,不会被自动排序。
-- `sleeve` 图片必填 `alt`(在渲染层要求,不是 frontmatter 字段本身)——空字符串也算
-  显式声明,不是漏填。
+- 封面图的 `alt` 由渲染层写死为空字符串(`components/reel/reel-sleeve.tsx` 约第
+  31 行,`<img alt="" ... />`,装饰性图片的显式声明)——frontmatter 里不需要也
+  无法提供这个字段,不是漏填。
 
 ## 上线
 `reel` 房间目前是 `open: false`(`lib/rooms.ts`,"待定期")。内容写完、能通过 build

@@ -44,6 +44,16 @@ instruments:
 ```
 
 ## 坑
+- 字段解析是 `lib/content.ts`(`toLabExperiment()`)手写的**宽容**逻辑,不是 zod
+  schema 校验——下面这几条"缺字段/写错值也不报错"的行为都是这个手写解析
+  本身的性质,不是巧合或疏漏。
+- frontmatter 下面 `---` 之后写的正文文字**完全不会被读取、也不会被渲染**——
+  `toLabExperiment()`(`lib/content.ts` 约 222-235 行)只读 `data.title`/
+  `data.question`/`data.status`/`data.method`/`data.observation`/
+  `data.instruments`/`data.poster` 这些 frontmatter 字段,函数签名里根本没有
+  `unit.body` 这个参数;没有任何 lab 页面渲染这段文字。不像 `now`/`about` 那样
+  支持"frontmatter 下面写自由段落、按空行切分渲染"——在 lab 的 `index.md` 里
+  frontmatter 之后写正文纯属徒劳,会被静默丢弃,不报错、也不会出现在任何页面上。
 - `title`/`question` 缺一不可:少写任何一个,那个实验会从 `/lab` 列表和详情路由里
   **完全消失**,没有任何报错提示——加完新实验一定要自己去 `/lab` 页面肉眼确认它出现
   了,不能只看 build 有没有报错。
@@ -57,4 +67,5 @@ instruments:
 ## 上线
 `lab` 房间目前已经 `open: true`(`lib/rooms.ts`)。新增实验目录后,只要
 `title`/`question` 都写了,重新 build/dev 就会自动出现在 `/lab` 列表——不需要碰
-`lib/rooms.ts`(那个开关是整个房间级别的,不是单个实验级别的)。
+`lib/rooms.ts`(那个开关是整个房间级别的,不是单个实验级别的);这个 `open`
+字段本身是所有房间共用的可见性开关,只是眼下不需要碰它。

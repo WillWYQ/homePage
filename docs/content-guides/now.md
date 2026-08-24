@@ -51,4 +51,6 @@ listening:
 - `content/now/index.md` 整个文件不存在时,`/now` 直接 404。
 
 ## 上线
-`now` 房间目前已经 `open: true`(`lib/rooms.ts`),不需要额外操作。
+`now` 房间目前已经 `open: true`(`lib/rooms.ts`),不需要额外操作;房间的整体
+可见性是由 `lib/rooms.ts` 里 `open` 这个独立开关控制的(`photos.md`/`reel.md`
+里 `open: false` 就是这个开关的例子),只是眼下不需要碰它。

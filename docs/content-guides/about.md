@@ -27,6 +27,13 @@
 | `portrait_alt` | string | 否 | `portrait` 的无障碍替代文本,`sr-only` 渲染。 |
 | `shelves.books` / `.films` / `.music` / `.gear` | array of `{title, note?, href?}` | 否 | ⑤ 收藏架四层,固定这四个 key。某一层为空数组或不写,那一层不渲染;`title` 缺失的条目被跳过。 |
 
+## 正文段落(frontmatter 下面的自由文本)
+跟 `now` 一样,`content/about/index.md` 里 `---` 包裹的 frontmatter 之后写的
+普通文本会被解析(`getAbout()` 返回的 `paragraphs: toParagraphs(unit.body)`,
+`lib/content.ts` 约 200 行)并渲染——`app/about/page.tsx` 把这些段落显示在
+页面底部的一个衬线字体(serif)区块里,按空行切分成段。同 `now`:不编译
+markdown 语法,`#`/`*` 等符号会原样显示在页面上。
+
 ## 示例
 摘自仓库现有的 `content/about/index.md`(节选,省略了部分 `observers` 条目):
 
@@ -72,4 +79,6 @@ curator_note: >-
 - `content/about/index.md` 不存在时,`/about` 直接 404。
 
 ## 上线
-`about` 房间目前已经 `open: true`(`lib/rooms.ts`),不需要额外操作。
+`about` 房间目前已经 `open: true`(`lib/rooms.ts`),不需要额外操作;房间的
+整体可见性是由 `lib/rooms.ts` 里 `open` 这个独立开关控制的(`photos.md`/
+`reel.md` 里 `open: false` 就是这个开关的例子),只是眼下不需要碰它。

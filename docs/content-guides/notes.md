@@ -13,9 +13,15 @@
 `notes` 具体该长什么样(单文件还是按条目分目录、要不要配图)取决于第 3 期的实际设计,
 但代码库里已经有两条验证过的模式可以参考,不用从零设计:
 
-- **纯 frontmatter + 正文段落,像 `lab`**——如果 notes 是"一条一条独立记录,每条有
-  标题/日期/正文",可以照抄 `content/lab/<slug>/index.md` 那种"目录名即 slug、
-  frontmatter 存结构化字段、正文自由段落"的布局(参见 `docs/content-guides/lab.md`)。
+- **目录名即 slug + frontmatter 结构化字段,像 `lab`**——如果 notes 是"一条一条
+  独立记录,每条有标题/日期",可以照抄 `content/lab/<slug>/index.md` 那种"每条
+  一个目录、目录名即 slug、字段全部塞进 frontmatter"的布局(参见
+  `docs/content-guides/lab.md`)。**注意**:`lab` 的 `method`/`observation` 这类
+  "正文感"内容其实也是 frontmatter 里的字符串字段,不是写在 `---` 下面的自由
+  文本——`toLabExperiment()` 只读 frontmatter,`---` 之后写的正文完全不读也不
+  渲染(见 `lab.md` 坑一节)。如果 notes 真的需要"标题/日期 + 自由段落正文"这种
+  写法,应该参照 `now`/`about` 的模式(frontmatter 之外的正文被
+  `toParagraphs(unit.body)` 解析并渲染),而不是照抄 `lab` 的目录结构。
 - **带资源同步管线,像 `photos`**——如果 notes 要挂配图,`DESIGN.md` §6 的图片同步
   流程图已经把 notes 插图画了进去(`scripts/sync-images.mjs` 目前只扫
   `content/photos/**`,接入 notes 时预期只是加一行 glob,不是重新设计整条管线,见
